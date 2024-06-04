@@ -1,0 +1,134 @@
+﻿@page "/species"
+
+@using PlantCare.Mobile.Models
+@using PlantCare.Mobile.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiConnectionService<Species> ApiService
+
+<div class="page">
+    <h1 class="page-title">Plant Species</h1>
+    <button class="btn-add" @onclick="ToggleAddSpeciesForm">Add New Species</button>
+
+    @if (ShowAddSpeciesForm)
+    {
+        <div class="add-item">
+            <h2>Add New Plant Species</h2>
+            <div class="input-fields">
+                <input type="text" placeholder="Name" @bind="NewSpecies.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
+                <textarea type="text" placeholder="Description" @bind="NewSpecies.Description"></textarea>
+                <input type="text" placeholder="Watering Frequency" @bind="NewSpecies.WateringFrequency" />
+                <input type="text" placeholder="Sunlight Requirements" @bind="NewSpecies.SunlightRequirements" />
+            </div>
+            @if (!NameIsValid)
+            {
+                <div class="error-message">Name is required.</div>
+            }
+            <button class="btn-add" @onclick="AddSpecies">Add</button>
+        </div>
+    }
+
+    <div class="item-list">
+        @if (SpeciesList == null)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            @foreach (var species in SpeciesList)
+            {
+                <div class="item-card">
+                    @if (SelectedSpeciesId == species.Id)
+                    {
+                        <div class="item-info">
+                            <input type="text" @bind="species.Name" placeholder="Name" />
+                            <textarea @bind="species.Description" placeholder="Description"></textarea>
+                            <input type="text" @bind="species.WateringFrequency" placeholder="Watering Frequency" />
+                            <input type="text" @bind="species.SunlightRequirements" placeholder="Sunlight Requirements" />
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-save bg-success" @onclick="() => SaveSpecies(species)">Save</button>
+                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="item-info">
+                            <h2>@species.Name</h2>
+                            <p>@species.Description</p>
+                            <p><strong>Watering Frequency:</strong> @species.WateringFrequency</p>
+                            <p><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-edit bg-info" @onclick="() => EditSpecies(species)">Edit</button>
+                            <button class="btn-delete bg-danger" @onclick="() => DeleteSpecies(species.Id)">Delete</button>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+@code {
+    List<Species> SpeciesList;
+    int SelectedSpeciesId;
+    bool ShowAddSpeciesForm = false;
+    bool NameIsValid = true;
+    Species NewSpecies = new Species();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSpecies();
+        SelectedSpeciesId = 0;
+    }
+
+    private async Task LoadSpecies()
+    {
+        var allSpecies = await ApiService.GetAllAsync("Species");
+        SpeciesList = allSpecies.Where(s => s.IsActive).ToList();
+    }
+
+    private void ToggleAddSpeciesForm()
+    {
+        ShowAddSpeciesForm = !ShowAddSpeciesForm;
+    }
+
+    private async Task AddSpecies()
+    {
+        NameIsValid = !string.IsNullOrWhiteSpace(NewSpecies.Name);
+
+        if (NameIsValid)
+        {
+            await ApiService.PostAsync("Species", NewSpecies);
+            await LoadSpecies(); // Reload species after addition
+            NewSpecies = new Species(); // Reset the NewSpecies object
+            ShowAddSpeciesForm = false; // Hide the form after addition
+        }
+    }
+
+    private void EditSpecies(Species species)
+    {
+        SelectedSpeciesId = species.Id;
+    }
+
+    private async Task SaveSpecies(Species species)
+    {
+        await ApiService.PutAsync($"Species/{species.Id}", species);
+        SelectedSpeciesId = 0; // Reset to exit edit mode
+    }
+
+    private void CancelEdit()
+    {
+        SelectedSpeciesId = 0; // Reset to exit edit mode
+    }
+
+    private async Task DeleteSpecies(int speciesId)
+    {
+        await ApiService.DeleteAsync($"Species/{speciesId}");
+        await LoadSpecies(); // Reload species after deletion
+    }
+}
