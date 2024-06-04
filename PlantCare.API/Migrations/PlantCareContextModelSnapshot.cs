@@ -130,14 +130,9 @@ namespace PlantCare.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SpeciesId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Plants");
                 });
@@ -362,49 +357,6 @@ namespace PlantCare.API.Migrations
                     b.ToTable("TaskTypes");
                 });
 
-            modelBuilder.Entity("PlantCare.API.Models.User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-                });
-
             modelBuilder.Entity("PlantCare.API.Models.Image", b =>
                 {
                     b.HasOne("PlantCare.API.Models.Plant", "Plant")
@@ -431,14 +383,7 @@ namespace PlantCare.API.Migrations
                         .WithMany("Plants")
                         .HasForeignKey("SpeciesId");
 
-                    b.HasOne("PlantCare.API.Models.User", "User")
-                        .WithMany("Plants")
-                        .HasForeignKey("UserId")
-                        .IsRequired();
-
                     b.Navigation("Species");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PlantCare.API.Models.PlantTag", b =>
@@ -511,11 +456,6 @@ namespace PlantCare.API.Migrations
             modelBuilder.Entity("PlantCare.API.Models.TaskType", b =>
                 {
                     b.Navigation("PlantTasks");
-                });
-
-            modelBuilder.Entity("PlantCare.API.Models.User", b =>
-                {
-                    b.Navigation("Plants");
                 });
 #pragma warning restore 612, 618
         }

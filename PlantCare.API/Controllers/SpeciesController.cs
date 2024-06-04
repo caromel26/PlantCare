@@ -85,6 +85,20 @@ namespace PlantCare.API.Controllers
         }
 
         // DELETE: api/Species/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteSpecies(int id)
+        //{
+        //    var species = await _context.Species.FindAsync(id);
+        //    if (species == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _context.Species.Remove(species);
+        //    await _context.SaveChangesAsync();
+
+        //    return NoContent();
+        //}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSpecies(int id)
         {
@@ -94,7 +108,10 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.Species.Remove(species);
+            // Instead of removing, update properties
+            species.IsActive = false; // Assuming IsActive is an int field representing active/inactive status
+            species.DeletedAt = DateTime.Now; // Assuming DeletedAt is a DateTime field representing deletion timestamp
+
             await _context.SaveChangesAsync();
 
             return NoContent();

@@ -8,20 +8,15 @@ namespace PlantCare.API.Models
     {
         public Plant()
         {
-            PlantTags = new HashSet<PlantTag>();
-            Notes = new HashSet<Note>();
-            Images = new HashSet<Image>();
-            PlantTasks = new HashSet<PlantTask>();
-            Reminders = new HashSet<Reminder>();
+            PlantTags = [];
+            Notes = [];
+            Images = [];
+            PlantTasks = [];
+            Reminders = [];
         }
 
-        public int UserId { get; set; }
-        public int? SpeciesId { get; set; }
+        public int SpeciesId { get; set; }
         public DateTime? LastWateringDate { get; set; }
-
-        [ForeignKey("UserId")]
-        [InverseProperty("Plants")]
-        public virtual User User { get; set; }
 
         [ForeignKey("SpeciesId")]
         [InverseProperty("Plants")]
@@ -42,5 +37,4 @@ namespace PlantCare.API.Models
         [InverseProperty("Plant")]
         public virtual ICollection<Reminder> Reminders { get; set; }
     }
-
 }

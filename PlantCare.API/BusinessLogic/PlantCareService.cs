@@ -47,7 +47,5 @@ namespace PlantCare.API.BusinessLogic
                 _context.SaveChanges();
             }
         }
-
-        // Additional business logic methods can be added here
     }
 }

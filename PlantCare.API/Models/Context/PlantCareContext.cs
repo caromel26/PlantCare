@@ -16,18 +16,10 @@ namespace PlantCare.API.Models.Context
         public virtual DbSet<Species> Species { get; set; } = null!;
         public virtual DbSet<Tag> Tags { get; set; } = null!;
         public virtual DbSet<TaskType> TaskTypes { get; set; } = null!;
-        public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Reminder> Reminders { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Password).IsRequired().HasMaxLength(255);
-            });
-
             modelBuilder.Entity<Species>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -44,11 +36,6 @@ namespace PlantCare.API.Models.Context
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Plants)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.Species)
                     .WithMany(p => p.Plants)
