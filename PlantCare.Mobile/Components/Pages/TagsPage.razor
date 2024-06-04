@@ -1,0 +1,130 @@
+﻿@page "/tags"
+
+@using PlantCare.Mobile.Models
+@using PlantCare.Mobile.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiConnectionService<Tag> ApiService
+
+<div class="page">
+    <h1 class="page-title">Plant Tags</h1>
+    <button class="btn-add" @onclick="ToggleAddTagForm">Add New Tag</button>
+
+    @if (ShowAddTagForm)
+    {
+        <div class="add-item">
+            <h2>Add New Plant Tag</h2>
+            <div class="input-fields">
+                <input type="text" placeholder="Name" @bind="NewTag.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
+                <textarea type="text" placeholder="Description" @bind="NewTag.Description"></textarea>
+            </div>
+            @if (!NameIsValid)
+            {
+                <div class="error-message">Name is required.</div>
+            }
+            <button class="btn-add" @onclick="AddTag">Add</button>
+        </div>
+    }
+
+    <div class="item-list">
+        @if (TagList == null)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            @foreach (var tag in TagList)
+            {
+                <div class="item-card">
+                    @if (SelectedTagId == tag.Id)
+                    {
+                        <div class="item-info">
+                            <input type="text" @bind="tag.Name" placeholder="Name" />
+                            <textarea @bind="tag.Description" placeholder="Description"></textarea>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-save bg-success" @onclick="() => SaveTag(tag)">Save</button>
+                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="item-info">
+                            <h2>@tag.Name</h2>
+                            <p>@tag.Description</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-edit bg-info" @onclick="() => EditTag(tag)">Edit</button>
+                            <button class="btn-delete bg-danger" @onclick="() => DeleteTag(tag.Id)">Delete</button>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+@code {
+    List<Tag> TagList = new();
+    int SelectedTagId = 0;
+    bool ShowAddTagForm = false;
+    bool NameIsValid = true;
+    Tag NewTag = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTags();
+    }
+
+    private async Task LoadTags()
+    {
+        var allTags = await ApiService.GetAllAsync("Tags");
+        TagList = allTags.Where(s => s.IsActive).ToList();
+    }
+
+    private void ToggleAddTagForm()
+    {
+        ShowAddTagForm = !ShowAddTagForm;
+    }
+
+    private async Task AddTag()
+    {
+        NameIsValid = !string.IsNullOrWhiteSpace(NewTag.Name);
+
+        if (NameIsValid)
+        {
+            await ApiService.PostAsync("Tags", NewTag);
+            await LoadTags(); // Reload tags after addition
+            NewTag = new Tag(); // Reset the NewTag object
+            ShowAddTagForm = false; // Hide the form after addition
+        }
+    }
+
+    private void EditTag(Tag tag)
+    {
+        SelectedTagId = tag.Id;
+    }
+
+    private async Task SaveTag(Tag tag)
+    {
+
+        await ApiService.PutAsync($"Tags/{tag.Id}", tag);
+        SelectedTagId = 0; // Reset to exit edit mode
+
+    }
+
+    private void CancelEdit()
+    {
+        SelectedTagId = 0; // Reset to exit edit mode
+    }
+
+    private async Task DeleteTag(int tagId)
+    {
+        await ApiService.DeleteAsync($"Tags/{tagId}");
+        await LoadTags(); // Reload tags after deletion
+
+    }
+}
