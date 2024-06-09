@@ -115,6 +115,7 @@
 
         await ApiService.PutAsync($"Tags/{tag.Id}", tag);
         SelectedTagId = 0; // Reset to exit edit mode
+
     }
 
     private void CancelEdit()
