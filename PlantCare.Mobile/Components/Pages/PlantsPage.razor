@@ -1,0 +1,154 @@
+﻿@page "/plants"
+
+@using PlantCare.Mobile.Models
+@using PlantCare.Mobile.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiConnectionService<Plant> ApiService
+@inject ApiConnectionService<Species> SpeciesService
+@inject NavigationManager Navigation
+
+<div class="page">
+    <h1 class="page-title">Plants</h1>
+    <button class="btn-add" @onclick="ToggleAddPlantForm">Add New Plant</button>
+
+    @if (ShowAddPlantForm)
+    {
+        <div class="add-item">
+            <h2>Add New Plant</h2>
+            <div class="input-fields">
+                <input type="text" placeholder="Name" @bind="NewPlant.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
+                <textarea type="text" placeholder="Description" @bind="NewPlant.Description"></textarea>
+                <input type="text" placeholder="Species Id" @bind="NewPlantSpeciesId" />
+                <input type="date" placeholder="Last Watering Date" @bind="NewPlant.LastWateringDate" />
+            </div>
+            @if (!NameIsValid)
+            {
+                <div class="error-message">Name is required.</div>
+            }
+            <button class="btn-add" @onclick="AddPlant">Add</button>
+        </div>
+    }
+
+    <div class="item-list">
+        @if (PlantList == null)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            @foreach (var plant in PlantList)
+            {
+                <div class="item-card">
+                    @if (SelectedPlantId == plant.Id)
+                    {
+                        <div class="item-info">
+                            <input type="text" @bind="plant.Name" placeholder="Name" />
+                            <textarea @bind="plant.Description" placeholder="Description"></textarea>
+                            <input type="text" @bind="plant.SpeciesId" placeholder="Species Id" />
+                            <input type="date" @bind="plant.LastWateringDate" placeholder="Last Watering Date" />
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-save bg-success" @onclick="() => SavePlant(plant)">Save</button>
+                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="item-info">
+                            <h2>@plant.Name</h2>
+                            <p>@plant.Description</p>
+                            <p><strong>Last Watering Date:</strong> @plant.LastWateringDate?.ToString("yyyy-MM-dd")</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-details bg-primary" @onclick="() => GoToDetails(plant.Id)">Details</button>
+                            <button class="btn-edit bg-info" @onclick="() => EditPlant(plant)">Edit</button>
+                            <button class="btn-delete bg-danger" @onclick="() => DeletePlant(plant.Id)">Delete</button>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    List<Plant> PlantList;
+    int SelectedPlantId;
+    bool ShowAddPlantForm = false;
+    bool NameIsValid = true;
+    Plant NewPlant = new Plant();
+    int NewPlantSpeciesId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlants();
+        SelectedPlantId = 0;
+    }
+
+    private async Task LoadPlants()
+    {
+        var allPlants = await ApiService.GetAllAsync("Plants");
+        PlantList = allPlants.Where(p => p.IsActive).ToList();
+    }
+
+    private void ToggleAddPlantForm()
+    {
+        ShowAddPlantForm = !ShowAddPlantForm;
+    }
+
+    private async Task AddPlant()
+    {
+        NameIsValid = !string.IsNullOrWhiteSpace(NewPlant.Name);
+
+        if (NameIsValid)
+        {
+            var species = await SpeciesService.GetByIdAsync("Species", NewPlantSpeciesId);
+            if (species != null)
+            {
+                NewPlant.Species = species;
+                NewPlant.SpeciesId = NewPlantSpeciesId;
+                await ApiService.PostAsync("Plants", NewPlant);
+                await LoadPlants(); // Reload plants after addition
+                NewPlant = new Plant(); // Reset the NewPlant object
+                ShowAddPlantForm = false; // Hide the form after addition
+            }
+            else
+            {
+                // Handle case where species is not found
+            }
+        }
+    }
+
+    private async void EditPlant(Plant plant)
+    {
+        SelectedPlantId = plant.Id;
+        await LoadPlants();
+    }
+
+    private async Task SavePlant(Plant plant)
+    {
+        plant.Species = await SpeciesService.GetByIdAsync("Species", plant.SpeciesId);
+
+        await ApiService.PutAsync($"Plants/{plant.Id}", plant);
+        SelectedPlantId = 0; // Reset to exit edit mode
+    }
+
+    private void CancelEdit()
+    {
+        SelectedPlantId = 0; // Reset to exit edit mode
+    }
+
+    private async Task DeletePlant(int plantId)
+    {
+        await ApiService.DeleteAsync($"Plants/{plantId}");
+        await LoadPlants(); // Reload plants after deletion
+    }
+
+    private void GoToDetails(int plantId)
+    {
+        Navigation.NavigateTo($"/plants/details/{plantId}");
+    }
+}

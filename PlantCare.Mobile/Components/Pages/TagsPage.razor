@@ -5,6 +5,7 @@
 @using System.ComponentModel.DataAnnotations
 
 @inject ApiConnectionService<Tag> ApiService
+@inject NavigationManager Navigation
 
 <div class="page">
     <h1 class="page-title">Plant Tags</h1>
@@ -56,6 +57,7 @@
                             <p>@tag.Description</p>
                         </div>
                         <div class="item-actions">
+                            <button class="btn-details bg-primary" @onclick="() => GoToPlants(tag.Id)">See plants</button>
                             <button class="btn-edit bg-info" @onclick="() => EditTag(tag)">Edit</button>
                             <button class="btn-delete bg-danger" @onclick="() => DeleteTag(tag.Id)">Delete</button>
                         </div>
@@ -74,12 +76,12 @@
     bool NameIsValid = true;
     Tag NewTag = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
         await LoadTags();
     }
 
-    private async Task LoadTags()
+    private async System.Threading.Tasks.Task LoadTags()
     {
         var allTags = await ApiService.GetAllAsync("Tags");
         TagList = allTags.Where(s => s.IsActive).ToList();
@@ -90,7 +92,7 @@
         ShowAddTagForm = !ShowAddTagForm;
     }
 
-    private async Task AddTag()
+    private async System.Threading.Tasks.Task AddTag()
     {
         NameIsValid = !string.IsNullOrWhiteSpace(NewTag.Name);
 
@@ -108,12 +110,11 @@
         SelectedTagId = tag.Id;
     }
 
-    private async Task SaveTag(Tag tag)
+    private async System.Threading.Tasks.Task SaveTag(Tag tag)
     {
 
         await ApiService.PutAsync($"Tags/{tag.Id}", tag);
         SelectedTagId = 0; // Reset to exit edit mode
-
     }
 
     private void CancelEdit()
@@ -121,10 +122,14 @@
         SelectedTagId = 0; // Reset to exit edit mode
     }
 
-    private async Task DeleteTag(int tagId)
+    private async System.Threading.Tasks.Task DeleteTag(int tagId)
     {
         await ApiService.DeleteAsync($"Tags/{tagId}");
         await LoadTags(); // Reload tags after deletion
+    }
 
+    private void GoToPlants(int tagId)
+    {
+        Navigation.NavigateTo($"/tags/plants/{tagId}");
     }
 }

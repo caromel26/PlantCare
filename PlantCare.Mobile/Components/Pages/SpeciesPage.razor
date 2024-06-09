@@ -5,6 +5,8 @@
 @using System.ComponentModel.DataAnnotations
 
 @inject ApiConnectionService<Species> ApiService
+@inject NavigationManager Navigation
+
 
 <div class="page">
     <h1 class="page-title">Plant Species</h1>
@@ -62,6 +64,7 @@
                             <p><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</p>
                         </div>
                         <div class="item-actions">
+                            <button class="btn-details bg-primary" @onclick="() => GoToPlants(species.Id)">See plants</button>
                             <button class="btn-edit bg-info" @onclick="() => EditSpecies(species)">Edit</button>
                             <button class="btn-delete bg-danger" @onclick="() => DeleteSpecies(species.Id)">Delete</button>
                         </div>
@@ -74,19 +77,19 @@
 </div>
 
 @code {
-    List<Species> SpeciesList;
-    int SelectedSpeciesId;
+    List<Species> SpeciesList = new();
+    int SelectedSpeciesId = 0;
     bool ShowAddSpeciesForm = false;
     bool NameIsValid = true;
-    Species NewSpecies = new Species();
+    Species NewSpecies = new ();
 
-    protected override async Task OnInitializedAsync()
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
         await LoadSpecies();
         SelectedSpeciesId = 0;
     }
 
-    private async Task LoadSpecies()
+    private async System.Threading.Tasks.Task LoadSpecies()
     {
         var allSpecies = await ApiService.GetAllAsync("Species");
         SpeciesList = allSpecies.Where(s => s.IsActive).ToList();
@@ -97,7 +100,7 @@
         ShowAddSpeciesForm = !ShowAddSpeciesForm;
     }
 
-    private async Task AddSpecies()
+    private async System.Threading.Tasks.Task AddSpecies()
     {
         NameIsValid = !string.IsNullOrWhiteSpace(NewSpecies.Name);
 
@@ -115,7 +118,7 @@
         SelectedSpeciesId = species.Id;
     }
 
-    private async Task SaveSpecies(Species species)
+    private async System.Threading.Tasks.Task SaveSpecies(Species species)
     {
         await ApiService.PutAsync($"Species/{species.Id}", species);
         SelectedSpeciesId = 0; // Reset to exit edit mode
@@ -126,9 +129,14 @@
         SelectedSpeciesId = 0; // Reset to exit edit mode
     }
 
-    private async Task DeleteSpecies(int speciesId)
+    private async System.Threading.Tasks.Task DeleteSpecies(int speciesId)
     {
         await ApiService.DeleteAsync($"Species/{speciesId}");
         await LoadSpecies(); // Reload species after deletion
+    }
+
+    private void GoToPlants(int speciesId)
+    {
+        Navigation.NavigateTo($"/species/plants/{speciesId}");
     }
 }

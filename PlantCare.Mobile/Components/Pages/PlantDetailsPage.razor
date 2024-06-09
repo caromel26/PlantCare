@@ -1,0 +1,223 @@
+﻿@page "/plants/details/{id:int}"
+
+@using PlantCare.Mobile.Models
+@using PlantCare.Mobile.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiConnectionService<Plant> ApiService
+@inject ApiConnectionService<Species> SpeciesService
+@inject ApiConnectionService<PlantTask> PlantTaskService
+@inject ApiConnectionService<TaskType> TaskTypeService
+@inject ApiConnectionService<Tag> TagService
+@inject ApiConnectionService<PlantTag> PlantTagService
+@inject BusinessLogicService BusinessService
+@inject NavigationManager Navigation
+
+<div class="page">
+    <button class="btn-back" @onclick="GoBack">
+        <span class="arrow-icon">&larr;</span>
+    </button>
+    <h1 class="page-title">Plant Details</h1>
+
+    @if (Plant == null)
+    {
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="item-info">
+            <h2>@Plant.Name</h2>
+            <p>@Plant.Description</p>
+            <p><strong>Species:</strong> @Species?.Name</p>
+            <p>
+                <strong>Last Watering Date:</strong> @Plant.LastWateringDate?.ToString("yyyy-MM-dd")
+                <button class="btn-water" @onclick="WaterPlant">Water Plant</button>
+            </p>
+            @if (Species != null)
+            {
+                <p><strong>Watering Frequency:</strong> @Species.WateringFrequency</p>
+                <p><strong>Sunlight Requirements:</strong> @Species.SunlightRequirements</p>
+            }
+        </div>
+
+        <div class="tasks">
+            <h2>Tasks</h2>
+            @foreach (var task in PlantTasks)
+            {
+                <div class="task-item">
+                    <p><strong>@task.TaskType.Name:</strong> Due @task.DueDate?.ToString("yyyy-MM-dd") @if (task.CompletionStatus)
+                        {
+                            <span>(Completed)</span>
+                        }</p>
+                </div>
+            }
+            <button class="btn-add-task" @onclick="ShowTaskForm">Add Task</button>
+        </div>
+        @if (ShowAddTaskForm)
+        {
+            <div class="add-task">
+                <h2>Add Task</h2>
+                <div class="input-fields">
+                    <select @bind="NewTask.TaskTypeId" class="@((TaskTypeIsValid ? "" : "input-invalid"))">
+                        <option value="">Select Task Type</option>
+                        @foreach (var taskType in TaskTypes)
+                        {
+                            <option value="@taskType.Id">@taskType.Name</option>
+                        }
+                    </select>
+                    <input type="date" @bind="NewTask.DueDate" />
+                    <input type="checkbox" @bind="NewTask.CompletionStatus" /> Completed
+                </div>
+                @if (!TaskTypeIsValid)
+                {
+                    <div class="error-message">Task Type is required.</div>
+                }
+                <button class="btn-add" @onclick="AddTask">Add Task</button>
+            </div>
+        }
+
+
+        <div class="tags-section">
+            <h2>Tags</h2>
+            @foreach (var tag in PlantTags)
+            {
+                <div class="tag-item">
+                    <p>@tag.Tag.Name</p>
+                </div>
+            }
+            <button class="btn-add" @onclick="ShowTagForm">Add Tag</button>
+        </div>
+
+        @if (ShowAddTagForm)
+        {
+            <div class="add-tag-form">
+                <h2>Add Tag</h2>
+                <div class="input-fields">
+                    <select @bind="NewTag.TagId" class="@((TagIsValid ? "" : "input-invalid"))">
+                        <option value="">Select Tag</option>
+                        @foreach (var tag in Tags)
+                        {
+                            <option value="@tag.Id">@tag.Name</option>
+                        }
+                    </select>
+                </div>
+                @if (!TagIsValid)
+                {
+                    <div class="error-message">Tag is required.</div>
+                }
+                <button class="btn-add" @onclick="AddTag">Add Tag</button>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    Plant Plant;
+    Species Species;
+    PlantTask NewTask;
+    PlantTag NewTag;
+    List<PlantTag> PlantTags = new();
+    List<PlantTask> PlantTasks = new();
+    bool ShowAddTaskForm = false;
+    bool ShowAddTagForm = false;
+    bool TaskTypeIsValid = true;
+    bool TagIsValid = true;
+    List<TaskType> TaskTypes = new();
+    List<Tag> Tags = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Plant = await ApiService.GetByIdAsync("Plants", Id);
+        if (Plant?.SpeciesId != null)
+        {
+            Species = await SpeciesService.GetByIdAsync("Species", (int)Plant.SpeciesId);
+        }
+
+        TaskTypes = await TaskTypeService.GetAllAsync("TaskTypes");
+        Tags = await TagService.GetAllAsync("Tags");
+
+        PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id);
+        PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id);
+
+        PlantTags = PlantTags.Where(x => x.PlantId == Id).ToList();
+        PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
+
+        NewTask = new PlantTask { PlantId = Id };
+        NewTag = new PlantTag { PlantId = Id };
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/plants");
+    }
+
+    private void ShowTaskForm()
+    {
+        ShowAddTaskForm = true;
+    }
+
+    private void ShowTagForm()
+    {
+        ShowAddTagForm = true;
+    }
+
+    private async Task AddTask()
+    {
+        TaskTypeIsValid = NewTask.TaskTypeId > 0;
+        if (TaskTypeIsValid)
+        {
+            var taskType = await TaskTypeService.GetByIdAsync("TaskTypes", NewTask.TaskTypeId);
+            var plant = await ApiService.GetByIdAsync("Plants", Id);
+
+            NewTask.TaskTypeId = taskType.Id;
+            NewTask.PlantId = plant.Id;
+            NewTask.TaskType = taskType;
+            NewTask.Plant = plant;
+
+            await PlantTaskService.PostAsync("PlantTasks", NewTask);
+            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id); // Refresh tasks
+            NewTask = new PlantTask { PlantId = Id }; // Reset the NewTask object
+            ShowAddTaskForm = false; // Hide form after addition
+        }
+    }
+
+    private async Task AddTag()
+    {
+        TagIsValid = NewTag.TagId > 0;
+        if (TagIsValid)
+        {
+            var tag = await TagService.GetByIdAsync("Tags", NewTag.TagId);
+            var plant = await ApiService.GetByIdAsync("Plants", Id);
+
+            NewTag.TagId = tag.Id;
+            NewTag.PlantId = plant.Id;
+            NewTag.Tag = tag;
+            NewTag.Plant = plant;
+
+            await PlantTagService.PostAsync("PlantTags", NewTag);
+            PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id); // Refresh tags
+            NewTag = new PlantTag { PlantId = Id }; // Reset the NewTag object
+            ShowAddTagForm = false; // Hide form after addition
+        }
+    }
+
+    private async Task WaterPlant()
+    {
+        try
+        {
+            await BusinessService.WaterPlant("PlantCare", Id);
+            Plant.LastWateringDate = DateTime.Now; // Update the UI immediately
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            // Handle error (show error message, log, etc.)
+            Console.Error.WriteLine($"Error watering plant: {ex.Message}");
+        }
+    }
+}
