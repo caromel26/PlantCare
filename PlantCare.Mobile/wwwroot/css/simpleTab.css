@@ -5,7 +5,7 @@
     color: #4CAF50; /* Green */
 }
 
-.btn-add {
+.btn-add, btn-water {
     display: block;
     margin: 0 auto 20px auto;
     background-color: #28a745; /* Green */
@@ -118,6 +118,7 @@
 }
 
 .btn-edit,
+.btn-details,
 .btn-delete,
 .btn-save,
 .btn-cancel {
@@ -132,14 +133,96 @@
 }
 
     .btn-edit:hover,
+    .btn-details:hover,
     .btn-delete:hover,
     .btn-save:hover,
     .btn-cancel:hover {
         background-color: #0056b3; /* Darker Blue */
     }
 
+.btn-back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+}
+
+.arrow-icon {
+    font-size: 1.5rem;
+    vertical-align: middle;
+}
+
 .loading-spinner {
     display: flex;
     justify-content: center;
     margin-top: 40px;
+}
+
+.tags-section, .tasks-section {
+    margin-top: 20px;
+}
+
+    .tags-section h3, .tasks-section h3 {
+        margin-bottom: 10px;
+    }
+
+.badge {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 5px;
+    display: inline-block;
+}
+
+.btn-add {
+    margin-top: 10px;
+    display: block;
+}
+
+.add-tag-form {
+    margin-top: 10px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+
+.tab {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+}
+
+    .tab:not(:last-child) {
+        margin-right: 5px;
+    }
+
+.tasks {
+    margin-top: 10px;
+}
+
+.task {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+    .task.completed {
+        background-color: #f0f0f0;
+    }
+
+.btn-complete {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
 }
