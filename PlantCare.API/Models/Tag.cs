@@ -1,5 +1,6 @@
 ﻿using PlantCare.API.Models.Abstractions;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PlantCare.API.Models
 {
@@ -8,7 +9,7 @@ namespace PlantCare.API.Models
     {
         public Tag()
         {
-            PlantTags = new HashSet<PlantTag>();
+            PlantTags = [];
         }
 
         [InverseProperty("Tag")]

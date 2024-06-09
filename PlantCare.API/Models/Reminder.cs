@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PlantCare.API.Models
 {
     [Table("Reminders")]
-    public partial class Reminder : BaseDatatable
+    public partial class Reminder : DictionaryTable
     {
         public int PlantId { get; set; }
         public DateTime ReminderDate { get; set; }

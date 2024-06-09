@@ -89,7 +89,7 @@ namespace PlantCare.API.Models.Context
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.DueDate).IsRequired();
-                entity.Property(e => e.CompletionStatus).IsRequired();
+                entity.Property(e => e.CompletionStatus);
 
                 entity.HasOne(d => d.Plant)
                     .WithMany(p => p.PlantTasks)

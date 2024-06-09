@@ -1,6 +1,6 @@
-﻿using Azure;
-using PlantCare.API.Models.Abstractions;
+﻿using PlantCare.API.Models.Abstractions;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PlantCare.API.Models
 {
@@ -11,11 +11,9 @@ namespace PlantCare.API.Models
         public int TagId { get; set; }
 
         [ForeignKey("PlantId")]
-        [InverseProperty("PlantTags")]
         public virtual Plant Plant { get; set; }
 
         [ForeignKey("TagId")]
-        [InverseProperty("PlantTags")]
         public virtual Tag Tag { get; set; }
     }
 }

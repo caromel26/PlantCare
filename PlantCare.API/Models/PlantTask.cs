@@ -1,5 +1,7 @@
 ﻿using PlantCare.API.Models.Abstractions;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PlantCare.API.Models
 {
@@ -9,14 +11,12 @@ namespace PlantCare.API.Models
         public int PlantId { get; set; }
         public int TaskTypeId { get; set; }
         public DateTime DueDate { get; set; }
-        public bool CompletionStatus { get; set; }
+        public bool CompletionStatus { get; set; } = false;
 
         [ForeignKey("PlantId")]
-        [InverseProperty("PlantTasks")]
         public virtual Plant Plant { get; set; }
 
         [ForeignKey("TaskTypeId")]
-        [InverseProperty("PlantTasks")]
         public virtual TaskType TaskType { get; set; }
     }
 }

@@ -1,20 +1,14 @@
 ﻿using PlantCare.API.Models.Abstractions;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PlantCare.API.Models
 {
     [Table("Plants")]
     public partial class Plant : DictionaryTable
     {
-        public Plant()
-        {
-            PlantTags = [];
-            Notes = [];
-            Images = [];
-            PlantTasks = [];
-            Reminders = [];
-        }
-
         public int SpeciesId { get; set; }
         public DateTime? LastWateringDate { get; set; }
 
