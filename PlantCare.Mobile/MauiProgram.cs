@@ -23,6 +23,7 @@ namespace PlantCare.Mobile
             });
 
             builder.Services.AddScoped(typeof(ApiConnectionService<>));
+            builder.Services.AddScoped(typeof(BusinessLogicService));
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
