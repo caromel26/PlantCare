@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -23,14 +24,25 @@ namespace PlantCare.API.Controllers
 
         // GET: api/Species
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Species>>> GetSpecies()
+        public async Task<ActionResult<IEnumerable<SpeciesDTO>>> GetSpecies()
         {
-            return await _context.Species.ToListAsync();
+            var species = await _context.Species.ToListAsync();
+
+            var speciesDTOs = species.Select(s => new SpeciesDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description,
+                WateringFrequency = s.WateringFrequency??"",
+                SunlightRequirements = s.SunlightRequirements??"",
+            }).ToList();
+
+            return Ok(speciesDTOs);
         }
 
         // GET: api/Species/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Species>> GetSpecies(int id)
+        public async Task<ActionResult<SpeciesDTO>> GetSpecies(int id)
         {
             var species = await _context.Species.FindAsync(id);
 
@@ -39,18 +51,38 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            return species;
+            var speciesDTO = new SpeciesDTO
+            {
+                Id = species.Id,
+                Name = species.Name,
+                Description = species.Description,
+                WateringFrequency = species.WateringFrequency ?? "",
+                SunlightRequirements = species.SunlightRequirements ?? "",
+            };
+
+            return Ok(speciesDTO);
         }
 
         // PUT: api/Species/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSpecies(int id, Species species)
+        public async Task<IActionResult> PutSpecies(int id, SpeciesDTO speciesDTO)
         {
-            if (id != species.Id)
+            if (id != speciesDTO.Id)
             {
                 return BadRequest();
             }
+
+            var species = await _context.Species.FindAsync(id);
+            if (species == null)
+            {
+                return NotFound();
+            }
+
+            species.Name = speciesDTO.Name;
+            species.Description = speciesDTO.Description;
+            species.WateringFrequency = speciesDTO.WateringFrequency;
+            species.SunlightRequirements = speciesDTO.SunlightRequirements;
+            // Update other properties as needed
 
             _context.Entry(species).State = EntityState.Modified;
 
@@ -74,31 +106,24 @@ namespace PlantCare.API.Controllers
         }
 
         // POST: api/Species
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Species>> PostSpecies(Species species)
+        public async Task<ActionResult<SpeciesDTO>> PostSpecies(SpeciesDTO speciesDTO)
         {
+            var species = new Species
+            {
+                Name = speciesDTO.Name,
+                Description = speciesDTO.Description,
+                WateringFrequency = speciesDTO.WateringFrequency,
+                SunlightRequirements = speciesDTO.SunlightRequirements,
+                // Add other properties as needed
+            };
+
             _context.Species.Add(species);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSpecies", new { id = species.Id }, species);
+            return CreatedAtAction("GetSpecies", new { id = species.Id }, speciesDTO);
         }
 
-        // DELETE: api/Species/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteSpecies(int id)
-        //{
-        //    var species = await _context.Species.FindAsync(id);
-        //    if (species == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Species.Remove(species);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSpecies(int id)
         {
@@ -108,9 +133,8 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            // Instead of removing, update properties
-            species.IsActive = false; // Assuming IsActive is an int field representing active/inactive status
-            species.DeletedAt = DateTime.Now; // Assuming DeletedAt is a DateTime field representing deletion timestamp
+            species.IsActive = false;
+            species.DeletedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 

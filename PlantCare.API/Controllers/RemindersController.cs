@@ -94,7 +94,8 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.Reminders.Remove(reminder);
+            reminder.IsActive = false;
+            reminder.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();

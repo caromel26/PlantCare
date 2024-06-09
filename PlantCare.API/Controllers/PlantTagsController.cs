@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -23,34 +24,89 @@ namespace PlantCare.API.Controllers
 
         // GET: api/PlantTags
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlantTag>>> GetPlantTags()
+        public async Task<ActionResult<IEnumerable<PlantTagDTO>>> GetPlantTags()
         {
-            return await _context.PlantTags.ToListAsync();
+            var plantTags = await _context.PlantTags
+                .Include(x => x.Tag)
+                .Include(x => x.Plant)
+                .ThenInclude(x => x.Species)
+                .ToListAsync();
+
+            var plantTagDTOs = plantTags.Select(plantTag => new PlantTagDTO
+            {
+                Id = plantTag.Id,
+                TagId = plantTag.TagId,
+                PlantId = plantTag.PlantId,
+                Plant = new PlantDTO
+                {
+                    Id = plantTag.Plant.Id,
+                    Name = plantTag.Plant.Name,
+                    Description = plantTag.Plant.Description,
+                    LastWateringDate = plantTag.Plant.LastWateringDate,
+                    SpeciesId = plantTag.Plant.SpeciesId,
+                    Species = new SpeciesDTO
+                    {
+                        Id = plantTag.Plant.Species.Id,
+                        Name = plantTag.Plant.Species.Name,
+                        Description = plantTag.Plant.Species.Description,
+                        WateringFrequency = plantTag.Plant.Species.WateringFrequency ?? "",
+                        SunlightRequirements = plantTag.Plant.Species.SunlightRequirements ?? "",
+                    }
+                },
+                Tag = new TagDTO
+                {
+                    Id = plantTag.Tag.Id,
+                    Name = plantTag.Tag.Name,
+                    Description = plantTag.Tag.Description
+                }
+            }).ToList();
+
+            return Ok(plantTagDTOs);
         }
 
         // GET: api/PlantTags/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlantTag>> GetPlantTag(int id)
+        public async Task<ActionResult<PlantTagDTO>> GetPlantTag(int id)
         {
-            var plantTag = await _context.PlantTags.FindAsync(id);
+            var plantTag = await _context.PlantTags
+                .Include(x => x.Tag)
+                .Include(x => x.Plant)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (plantTag == null)
             {
                 return NotFound();
             }
 
-            return plantTag;
+            var plantTagDTO = new PlantTagDTO
+            {
+                Id = plantTag.Id,
+                TagId = plantTag.TagId,
+                PlantId = plantTag.PlantId,
+            };
+
+            return Ok(plantTagDTO);
         }
 
         // PUT: api/PlantTags/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPlantTag(int id, PlantTag plantTag)
+        public async Task<IActionResult> PutPlantTag(int id, PlantTagDTO plantTagDTO)
         {
-            if (id != plantTag.Id)
+            if (id != plantTagDTO.Id)
             {
                 return BadRequest();
             }
+
+            var plantTag = await _context.PlantTags.FindAsync(id);
+            if (plantTag == null)
+            {
+                return NotFound();
+            }
+
+            plantTag.TagId = plantTagDTO.TagId;
+            plantTag.PlantId = plantTagDTO.PlantId;
+            // Update other properties as needed
 
             _context.Entry(plantTag).State = EntityState.Modified;
 
@@ -76,12 +132,24 @@ namespace PlantCare.API.Controllers
         // POST: api/PlantTags
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PlantTag>> PostPlantTag(PlantTag plantTag)
+        public async Task<ActionResult<PlantTagDTO>> PostPlantTag(PlantTagDTO plantTagDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var plantTag = new PlantTag
+            {
+                TagId = plantTagDTO.TagId,
+                PlantId = plantTagDTO.PlantId,
+                // Add other properties as needed
+            };
+
             _context.PlantTags.Add(plantTag);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPlantTag", new { id = plantTag.Id }, plantTag);
+            return CreatedAtAction("GetPlantTag", new { id = plantTag.Id }, plantTagDTO);
         }
 
         // DELETE: api/PlantTags/5
@@ -94,7 +162,8 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.PlantTags.Remove(plantTag);
+            plantTag.IsActive = false;
+            plantTag.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();

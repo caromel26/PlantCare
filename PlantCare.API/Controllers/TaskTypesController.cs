@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -23,15 +24,28 @@ namespace PlantCare.API.Controllers
 
         // GET: api/TaskTypes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskType>>> GetTaskTypes()
+        public async Task<ActionResult<IEnumerable<TaskTypeDTO>>> GetTaskTypes()
         {
-            return await _context.TaskTypes.ToListAsync();
+            var taskTypes = await _context.TaskTypes.ToListAsync();
+            var taskTypesDtos = taskTypes.Select(taskType => new TaskTypeDTO
+            {
+                Id = taskType.Id,
+                Name = taskType.Name,
+                Description = taskType.Description,
+            }).ToList();
+
+            return Ok(taskTypesDtos);
         }
 
         // GET: api/TaskTypes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskType>> GetTaskType(int id)
         {
+            if (id == 0)
+            {
+                return BadRequest();
+            }
+
             var taskType = await _context.TaskTypes.FindAsync(id);
 
             if (taskType == null)
@@ -39,70 +53,75 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
+            var taskTypeDto = new TaskTypeDTO
+            {
+                Id = taskType.Id,
+                Name = taskType.Name,
+                Description = taskType.Description,
+            };
+
             return taskType;
         }
 
         // PUT: api/TaskTypes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTaskType(int id, TaskType taskType)
+        public async Task<ActionResult> UpdateTaskType(int id, [FromBody] TaskTypeDTO taskTypeDto)
         {
-            if (id != taskType.Id)
+            if (id == 0 || taskTypeDto == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(taskType).State = EntityState.Modified;
-
-            try
+            var taskType = await _context.TaskTypes.FindAsync(id);
+            if (taskType == null)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskTypeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
+            taskType.Name = taskTypeDto.Name;
+            taskType.Description = taskTypeDto.Description;
+
+            await _context.SaveChangesAsync();
+            return Ok("Task updated successfully");
         }
 
         // POST: api/TaskTypes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TaskType>> PostTaskType(TaskType taskType)
+        public async Task<ActionResult> CreateTag([FromBody] TaskTypeDTO taskTypeDto)
         {
-            _context.TaskTypes.Add(taskType);
+            if (taskTypeDto == null)
+            {
+                return BadRequest("Task entity is null.");
+            }
+
+            var entity = new Tag
+            {
+                Name = taskTypeDto.Name,
+                Description = taskTypeDto.Description,
+            };
+
+            _context.Tags.Add(entity);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTaskType", new { id = taskType.Id }, taskType);
+            return Ok("Task created successfully.");
         }
 
         // DELETE: api/TaskTypes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTaskType(int id)
         {
-            var taskType = await _context.TaskTypes.FindAsync(id);
+            var taskType = await _context.TaskTypes.Where(x => x.Id == id).FirstOrDefaultAsync();
             if (taskType == null)
             {
                 return NotFound();
             }
 
-            _context.TaskTypes.Remove(taskType);
+            taskType.IsActive = false;
+            taskType.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool TaskTypeExists(int id)
-        {
-            return _context.TaskTypes.Any(e => e.Id == id);
         }
     }
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -21,70 +17,85 @@ namespace PlantCare.API.Controllers
             _context = context;
         }
 
-        // GET: api/Tags
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tag>>> GetTags()
-        {
-            return await _context.Tags.ToListAsync();
-        }
-
-        // GET: api/Tags/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Tag>> GetTag(int id)
+        public async Task<ActionResult<TagDTO>> GetTag(int id)
         {
-            var tag = await _context.Tags.FindAsync(id);
+            if (id == 0)
+            {
+                return BadRequest();
+            }
 
+            var tag = await _context.Tags.FindAsync(id);
             if (tag == null)
             {
                 return NotFound();
             }
 
-            return tag;
+            var tagDto = new TagDTO
+            {
+                Id = tag.Id,
+                Name = tag.Name,
+                Description = tag.Description,
+            };
+
+            return Ok(tagDto);
         }
 
-        // PUT: api/Tags/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTag(int id, Tag tag)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<TagDTO>>> GetTags()
         {
-            if (id != tag.Id)
+            var tags = await _context.Tags.ToListAsync();
+            var tagDtos = tags.Select(tag => new TagDTO
+            {
+                Id = tag.Id,
+                Name = tag.Name,
+                Description = tag.Description,
+            }).ToList();
+
+            return Ok(tagDtos);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CreateTag([FromBody] TagDTO tagDto)
+        {
+            if (tagDto == null)
+            {
+                return BadRequest("Tag entity is null.");
+            }
+
+            var entity = new Tag
+            {
+                Name = tagDto.Name,
+                Description = tagDto.Description,
+            };
+
+            _context.Tags.Add(entity);
+            await _context.SaveChangesAsync();
+
+            return Ok("Tag created successfully.");
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateTag(int id, [FromBody] TagDTO tagDto)
+        {
+            if (id == 0 || tagDto == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tag).State = EntityState.Modified;
-
-            try
+            var tag = await _context.Tags.FindAsync(id);
+            if (tag == null)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TagExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
-        }
+            tag.Name = tagDto.Name;
+            tag.Description = tagDto.Description;
 
-        // POST: api/Tags
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Tag>> PostTag(Tag tag)
-        {
-            _context.Tags.Add(tag);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTag", new { id = tag.Id }, tag);
+            return Ok("Tag updated successfully");
         }
 
-        // DELETE: api/Tags/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTag(int id)
         {
@@ -94,15 +105,11 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.Tags.Remove(tag);
+            tag.IsActive = false;
+            tag.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool TagExists(int id)
-        {
-            return _context.Tags.Any(e => e.Id == id);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -23,15 +24,83 @@ namespace PlantCare.API.Controllers
 
         // GET: api/Images
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Image>>> GetImages()
+        public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImages()
         {
-            return await _context.Images.ToListAsync();
+            var images = await _context.Images.Include(x => x.Plant).ToListAsync(); // _context.Images.ToListAsync();
+
+            var imageDtos = images.Select(image => new ImageDTO
+            {
+                Id = image.Id,
+                PlantId = image.PlantId,
+                ImageUrl = image.ImageUrl??"",
+                Plant = new PlantDTO
+                {
+                    Id = image.Plant.Id,
+                    Name = image.Plant.Name,
+                    Description = image.Plant.Description,
+                    LastWateringDate = image.Plant.LastWateringDate,
+                    SpeciesId = image.Plant.SpeciesId,
+                    Species = new SpeciesDTO
+                    {
+                        Id = image.Plant.Species.Id,
+                        Name = image.Plant.Species.Name,
+                        Description = image.Plant.Species.Description,
+                        WateringFrequency = image.Plant.Species.WateringFrequency ?? "",
+                        SunlightRequirements = image.Plant.Species.SunlightRequirements ?? "",
+                    }
+                }
+            }).ToList();
+
+            return Ok(imageDtos);
         }
 
         // GET: api/Images/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Image>> GetImage(int id)
+        public async Task<ActionResult<ImageDTO>> GetImage(int id)
         {
+            var image = await _context.Images.Include(x => x.Plant).FirstOrDefaultAsync(x => x.Id == id);
+
+            if (image == null)
+            {
+                return NotFound();
+            }
+
+            var imageDTO = new ImageDTO
+            {
+                Id = image.Id,
+                PlantId = image.PlantId,
+                ImageUrl = image.ImageUrl ?? "",
+                Plant = new PlantDTO
+                {
+                    Id = image.Plant.Id,
+                    Name = image.Plant.Name,
+                    Description = image.Plant.Description,
+                    LastWateringDate = image.Plant.LastWateringDate,
+                    SpeciesId = image.Plant.SpeciesId,
+                    Species = new SpeciesDTO
+                    {
+                        Id = image.Plant.Species.Id,
+                        Name = image.Plant.Species.Name,
+                        Description = image.Plant.Species.Description,
+                        WateringFrequency = image.Plant.Species.WateringFrequency ?? "",
+                        SunlightRequirements = image.Plant.Species.SunlightRequirements ?? "",
+                    }
+                }
+            };
+
+            return Ok(imageDTO);
+        }
+
+        // PUT: api/Images/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutImage(int id, ImageDTO imageDTO)
+        {
+            if (id != imageDTO.Id)
+            {
+                return BadRequest();
+            }
+
             var image = await _context.Images.FindAsync(id);
 
             if (image == null)
@@ -39,49 +108,32 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            return image;
-        }
+            image.ImageUrl = imageDTO.ImageUrl;
 
-        // PUT: api/Images/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutImage(int id, Image image)
-        {
-            if (id != image.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(image).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ImageExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            await _context.SaveChangesAsync();
+            return Ok(imageDTO);
         }
 
         // POST: api/Images
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Image>> PostImage(Image image)
+        public async Task<ActionResult<ImageDTO>> PostImage(ImageDTO imageDTO)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var image = new Image
+            {
+                PlantId = imageDTO.PlantId,
+                ImageUrl = imageDTO.ImageUrl
+            };
+
             _context.Images.Add(image);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetImage", new { id = image.Id }, image);
+            return CreatedAtAction("GetImage", new { id = image.Id }, imageDTO);
         }
 
         // DELETE: api/Images/5
@@ -94,7 +146,8 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.Images.Remove(image);
+            image.IsActive = false;
+            image.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlantCare.API.DTO;
 using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
@@ -23,65 +24,123 @@ namespace PlantCare.API.Controllers
 
         // GET: api/PlantTasks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlantTask>>> GetPlantTasks()
+        public async Task<ActionResult<IEnumerable<PlantTaskDTO>>> GetPlantTasks()
         {
-            return await _context.PlantTasks.ToListAsync();
+            var plantTasks = await _context.PlantTasks
+                .Include(x => x.TaskType)
+                .Include(x => x.Plant)
+                .ThenInclude(x => x.Species)
+                .ToListAsync();
+
+            var plantTaskDTOs = plantTasks.Select(plantTask => new PlantTaskDTO
+            {
+                Id = plantTask.Id,
+                TaskTypeId = plantTask.TaskTypeId,
+                PlantId = plantTask.PlantId,
+                CompletionStatus = plantTask.CompletionStatus,
+                DueDate = plantTask.DueDate,
+                TaskType = new TaskTypeDTO
+                {
+                    Id = plantTask.TaskType.Id,
+                    Name = plantTask.TaskType.Name,
+                    Description = plantTask.TaskType.Description
+                },
+
+                Plant = new PlantDTO
+                {
+                    Id = plantTask.Plant.Id,
+                    Name = plantTask.Plant.Name,
+                    Description = plantTask.Plant.Description,
+                    LastWateringDate = plantTask.Plant.LastWateringDate,
+                    SpeciesId = plantTask.Plant.SpeciesId,
+                    Species = new SpeciesDTO
+                    {
+                        Id = plantTask.Plant.Species.Id,
+                        Name = plantTask.Plant.Species.Name,
+                        Description = plantTask.Plant.Species.Description,
+                        WateringFrequency = plantTask.Plant.Species.WateringFrequency ?? "",
+                        SunlightRequirements = plantTask.Plant.Species.SunlightRequirements ?? "",
+                    }
+                }
+            }).ToList();
+
+            return Ok(plantTaskDTOs);
         }
 
         // GET: api/PlantTasks/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlantTask>> GetPlantTask(int id)
+        public async Task<ActionResult<PlantTaskDTO>> GetPlantTask(int id)
         {
-            var plantTask = await _context.PlantTasks.FindAsync(id);
+            var plantTask = await _context.PlantTasks
+                .Include(x => x.TaskType)
+                .Include(x => x.Plant)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (plantTask == null)
             {
                 return NotFound();
             }
 
-            return plantTask;
+            var plantTaskDTO = new PlantTaskDTO
+            {
+                Id = plantTask.Id,
+                TaskTypeId = plantTask.TaskTypeId,
+                PlantId = plantTask.PlantId,
+                CompletionStatus = plantTask.CompletionStatus,
+                DueDate = plantTask.DueDate,
+            };
+
+            return Ok(plantTaskDTO);
         }
 
         // PUT: api/PlantTasks/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPlantTask(int id, PlantTask plantTask)
+        public async Task<IActionResult> PutPlantTask(int id, PlantTaskDTO plantTaskDTO)
         {
-            if (id != plantTask.Id)
+            if (id != plantTaskDTO.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(plantTask).State = EntityState.Modified;
+            var plantTask = await _context.PlantTasks
+                .Include(x => x.TaskType)
+                .Include(x => x.Plant)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-            try
+            if (plantTask == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PlantTaskExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            
+            plantTask.DueDate = plantTaskDTO.DueDate;
+            plantTask.CompletionStatus = plantTaskDTO.CompletionStatus;
 
-            return NoContent();
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         // POST: api/PlantTasks
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PlantTask>> PostPlantTask(PlantTask plantTask)
+        public async Task<ActionResult<PlantTaskDTO>> PostPlantTag(PlantTaskDTO plantTaskDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var plantTask = new PlantTask
+            {
+                TaskTypeId = plantTaskDTO.TaskTypeId,
+                PlantId = plantTaskDTO.PlantId,
+                DueDate = plantTaskDTO.DueDate,
+                CompletionStatus = plantTaskDTO.CompletionStatus,
+            };
+
             _context.PlantTasks.Add(plantTask);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPlantTask", new { id = plantTask.Id }, plantTask);
+            return CreatedAtAction("GetPlantTag", new { id = plantTask.Id }, plantTaskDTO);
         }
 
         // DELETE: api/PlantTasks/5
@@ -94,15 +153,11 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
-            _context.PlantTasks.Remove(plantTask);
+            plantTask.IsActive = false;
+            plantTask.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool PlantTaskExists(int id)
-        {
-            return _context.PlantTasks.Any(e => e.Id == id);
         }
     }
 }
