@@ -11,7 +11,9 @@ namespace PlantCare.Mobile.Models
     {
         public int PlantId { get; set; }
         public int TaskTypeId { get; set; }
-        public DateTime DueDate { get; set; }
+        public DateTime? DueDate { get; set; }
         public bool CompletionStatus { get; set; }
+        public TaskType TaskType { get; set; }
+        public Plant Plant { get; set; }
     }
 }

@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 
 namespace PlantCare.Mobile.Models
 {
-    public class Image : BaseModel
+    public class PlantTag : BaseModel
     {
         public int PlantId { get; set; }
-        public string? ImageUrl { get; set; }
-        public Plant Plant { get; set; }
+        public int TagId { get; set; }
+        public virtual Plant Plant { get; set; }
+        public virtual Tag Tag { get; set; }
+
     }
 }
