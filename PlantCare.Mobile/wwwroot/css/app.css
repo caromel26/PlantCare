@@ -84,3 +84,61 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+.nav-link {
+    display: flex;
+    align-items: center;
+}
+
+.icon-center {
+    font-size: 1.5em; /* Adjust the size as needed */
+    margin-right: 8px; /* Space between icon and text */
+    margin-bottom: 25px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #4CAF50;
+    font-size: 2em;
+    margin-bottom: 0.5em;
+}
+
+.content {
+    padding: 20px;
+}
+
+p {
+    font-size: 1.1em;
+    color: #555;
+    line-height: 1.6;
+}
+
+.btn-water {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+    .btn-water:hover {
+        background-color: #218838;
+    }
+
+    .btn-water:active {
+        background-color: #1e7e34;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }

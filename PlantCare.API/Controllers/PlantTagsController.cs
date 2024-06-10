@@ -134,6 +134,11 @@ namespace PlantCare.API.Controllers
         [HttpPost]
         public async Task<ActionResult<PlantTagDTO>> PostPlantTag(PlantTagDTO plantTagDTO)
         {
+            var plant = await _context.Plants.FindAsync(plantTagDTO.PlantId);
+            var species = await _context.Species.FindAsync(plantTagDTO.Plant.SpeciesId);
+            plant.Species = species;
+
+            var tag = await _context.Tags.FindAsync(plantTagDTO.TagId);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -141,9 +146,11 @@ namespace PlantCare.API.Controllers
 
             var plantTag = new PlantTag
             {
+                Id = plantTagDTO.Id,
                 TagId = plantTagDTO.TagId,
                 PlantId = plantTagDTO.PlantId,
-                // Add other properties as needed
+                Plant = plant,
+                Tag = tag,
             };
 
             _context.PlantTags.Add(plantTag);

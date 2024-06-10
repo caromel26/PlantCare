@@ -1,0 +1,133 @@
+﻿@page "/tasks"
+
+@using PlantCare.Mobile.Models
+@using PlantCare.Mobile.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiConnectionService<TaskType> ApiService
+@inject NavigationManager Navigation
+
+<div class="page">
+    <h1 class="page-title">Task Types</h1>
+    <button class="btn-add" @onclick="ToggleAddTaskForm">Add New Task Type</button>
+
+    @if (ShowAddTaskForm)
+    {
+        <div class="add-item">
+            <h2>Add New Task Type</h2>
+            <div class="input-fields">
+                <input type="text" placeholder="Name" @bind="NewTaskType.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
+                <textarea placeholder="Description" @bind="NewTaskType.Description"></textarea>
+            </div>
+            @if (!NameIsValid)
+            {
+                <div class="error-message">Name is required.</div>
+            }
+            <button class="btn-add" @onclick="AddTaskType">Add</button>
+        </div>
+    }
+
+    <div class="item-list">
+        @if (TaskTypeList == null)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            @foreach (var taskType in TaskTypeList)
+            {
+                <div class="item-card">
+                    @if (SelectedTaskTypeId == taskType.Id)
+                    {
+                        <div class="item-info">
+                            <input type="text" @bind="taskType.Name" placeholder="Name" />
+                            <textarea @bind="taskType.Description" placeholder="Description"></textarea>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-save bg-success" @onclick="() => SaveTaskType(taskType)">Save</button>
+                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="item-info">
+                            <h2>@taskType.Name</h2>
+                            <p>@taskType.Description</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-details bg-primary" @onclick="() => GoToTaskPlants(taskType.Id)">See plants</button>
+                            <button class="btn-edit bg-info" @onclick="() => EditTaskType(taskType)">Edit</button>
+                            <button class="btn-delete bg-danger" @onclick="() => DeleteTaskType(taskType.Id)">Delete</button>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    List<TaskType> TaskTypeList = new();
+    int SelectedTaskTypeId = 0;
+    bool ShowAddTaskForm = false;
+    bool NameIsValid = true;
+    TaskType NewTaskType = new();
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        await LoadTaskTypes();
+    }
+
+    private async System.Threading.Tasks.Task LoadTaskTypes()
+    {
+        var allTaskTypes = await ApiService.GetAllAsync("TaskTypes");
+        TaskTypeList = allTaskTypes.Where(tt => tt.IsActive).ToList();
+    }
+
+    private void ToggleAddTaskForm()
+    {
+        ShowAddTaskForm = !ShowAddTaskForm;
+    }
+
+    private async System.Threading.Tasks.Task AddTaskType()
+    {
+        NameIsValid = !string.IsNullOrWhiteSpace(NewTaskType.Name);
+
+        if (NameIsValid)
+        {
+            await ApiService.PostAsync("TaskTypes", NewTaskType);
+            await LoadTaskTypes(); // Reload task types after addition
+            NewTaskType = new TaskType(); // Reset the NewTaskType object
+            ShowAddTaskForm = false; // Hide the form after addition
+        }
+    }
+
+    private void EditTaskType(TaskType taskType)
+    {
+        SelectedTaskTypeId = taskType.Id;
+    }
+
+    private async System.Threading.Tasks.Task SaveTaskType(TaskType taskType)
+    {
+        await ApiService.PutAsync($"TaskTypes/{taskType.Id}", taskType);
+        SelectedTaskTypeId = 0; // Reset to exit edit mode
+    }
+
+    private void CancelEdit()
+    {
+        SelectedTaskTypeId = 0; // Reset to exit edit mode
+    }
+
+    private async System.Threading.Tasks.Task DeleteTaskType(int taskTypeId)
+    {
+        await ApiService.DeleteAsync($"TaskTypes/{taskTypeId}");
+        await LoadTaskTypes(); // Reload task types after deletion
+    }
+
+    private void GoToTaskPlants(int taskTypeId)
+    {
+        Navigation.NavigateTo($"/tasks/plants/{taskTypeId}");
+    }
+}

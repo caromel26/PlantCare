@@ -8,7 +8,6 @@ namespace PlantCare.API.DTO
         public DateTime? LastWateringDate { get; set; }
         public SpeciesDTO Species { get; set; }
 
-        public ICollection<PlantTaskDTO> PlantTasks { get; set; }
-        public ICollection<PlantTagDTO> PlantTags { get; set; }
+        
     }
 }
