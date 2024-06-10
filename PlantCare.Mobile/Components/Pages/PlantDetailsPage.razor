@@ -8,10 +8,13 @@
 @inject ApiConnectionService<Species> SpeciesService
 @inject ApiConnectionService<PlantTask> PlantTaskService
 @inject ApiConnectionService<TaskType> TaskTypeService
+@inject ApiConnectionService<Note> NoteService
 @inject ApiConnectionService<Tag> TagService
 @inject ApiConnectionService<PlantTag> PlantTagService
+@inject ApiConnectionService<Reminder> ReminderService
 @inject BusinessLogicService BusinessService
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 
 <div class="page">
     <button class="btn-back" @onclick="GoBack">
@@ -41,7 +44,7 @@
                 <p><strong>Sunlight Requirements:</strong> @Species.SunlightRequirements</p>
             }
         </div>
-
+       
         <div class="tasks">
             <h2>Tasks</h2>
             @foreach (var task in PlantTasks)
@@ -116,6 +119,11 @@
                 <button class="btn-add" @onclick="AddTag">Add Tag</button>
             </div>
         }
+
+        @if (!HasReminder)
+        {
+            <button class="btn-add-reminder" @onclick="AddReminder">Add Reminder</button>
+        }
     }
 </div>
 
@@ -127,12 +135,22 @@
     Species Species;
     PlantTask NewTask;
     PlantTag NewTag;
+
     List<PlantTag> PlantTags = new();
     List<PlantTask> PlantTasks = new();
+    List<Note> PlantNotes = new();
+    List<Reminder> Reminders = new();
+
     bool ShowAddTaskForm = false;
     bool ShowAddTagForm = false;
+    bool ShowAddNoteForm = false;
+
+    bool NoteIsValid = true;
     bool TaskTypeIsValid = true;
     bool TagIsValid = true;
+
+    bool HasReminder = false;
+
     List<TaskType> TaskTypes = new();
     List<Tag> Tags = new();
     List<Tag> AvailableTags = new();
@@ -157,8 +175,9 @@
         NewTask = new PlantTask { PlantId = Id };
         NewTag = new PlantTag { PlantId = Id };
 
-        // Filter available tags to exclude those already added
         AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
+
+        HasReminder = Reminders.Any(reminder => reminder.PlantId == Id);
     }
 
     private void GoBack()
@@ -190,10 +209,10 @@
             NewTask.Plant = plant;
 
             await PlantTaskService.PostAsync("PlantTasks", NewTask);
-            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id); // Refresh tasks
+            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id);
             PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
-            NewTask = new PlantTask { PlantId = Id }; // Reset the NewTask object
-            ShowAddTaskForm = false; // Hide form after addition
+            NewTask = new PlantTask { PlantId = Id };
+            ShowAddTaskForm = false;
         }
     }
 
@@ -211,14 +230,13 @@
             NewTag.Plant = plant;
 
             await PlantTagService.PostAsync("PlantTags", NewTag);
-            PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id); // Refresh tags
+            PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id);
             PlantTags = PlantTags.Where(x => x.PlantId == Id).ToList();
 
-            // Update available tags after adding a new tag
             AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
 
-            NewTag = new PlantTag { PlantId = Id }; // Reset the NewTag object
-            ShowAddTagForm = false; // Hide form after addition
+            NewTag = new PlantTag { PlantId = Id };
+            ShowAddTagForm = false;
         }
     }
 
@@ -229,7 +247,7 @@
         {
             task.CompletionStatus = true;
             await PlantTaskService.PutAsync($"PlantTasks/{taskId}", task);
-            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id); // Refresh tasks
+            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id);
             PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
         }
     }
@@ -239,14 +257,30 @@
         try
         {
             await BusinessService.WaterPlant("PlantCare", Id);
-            Plant.LastWateringDate = DateTime.Now; // Update the UI immediately
+            Plant.LastWateringDate = DateTime.Now;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            // Handle error (show error message, log, etc.)
             Console.Error.WriteLine($"Error watering plant: {ex.Message}");
         }
+    }
+
+    private async Task AddReminder()
+    {
+        var uncompletedTasks = PlantTasks.Count(task => !task.CompletionStatus);
+        var reminder = new Reminder
+            {
+                Name = $"Plant {Plant.Name}",
+                Description = $"This plant has {uncompletedTasks} uncompleted tasks",
+                PlantId = Plant.Id,
+                Plant = Plant
+            };
+
+        await ReminderService.PostAsync("Reminders", reminder);
+        HasReminder = true;
+        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 }
 
@@ -324,6 +358,19 @@
         border-radius: 4px;
         cursor: pointer;
         margin-left: 10px;
+    }
+
+    .btn-add-reminder {
+        display: block;
+        width: 100%;
+        background-color: #ff9800;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+        text-align: center;
     }
 
     .add-task, .add-tag-form {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using PlantCare.Mobile.Models;
 using System;
 using System.Net.Http;
 using System.Text.Json;
@@ -46,5 +47,32 @@ namespace PlantCare.Mobile.Services
                 throw;
             }
         }
+
+        public async Task<List<Reminder>> GetRemindersAsync(string address)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsync($"{address}/generate-reminders", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseStream = await response.Content.ReadAsStreamAsync();
+                    var reminders = await JsonSerializer.DeserializeAsync<List<Reminder>>(responseStream, _jsonOptions);
+                    _logger.LogInformation("Successfully retrieved reminders");
+                    return reminders;
+                }
+                else
+                {
+                    _logger.LogError("Failed to retrieve reminders. Status Code: {StatusCode}", response.StatusCode);
+                    throw new HttpRequestException($"Failed to retrieve reminders. Status Code: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving reminders");
+                throw;
+            }
+        }
+
     }
 }
