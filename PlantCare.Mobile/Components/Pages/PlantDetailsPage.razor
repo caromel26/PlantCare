@@ -47,13 +47,20 @@
             @foreach (var task in PlantTasks)
             {
                 <div class="task-item">
-                    <p><strong>@task.TaskType.Name:</strong> Due @task.DueDate?.ToString("yyyy-MM-dd") @if (task.CompletionStatus)
+                    <p>
+                        <strong>@task.TaskType.Name:</strong> Due @task.DueDate?.ToString("yyyy-MM-dd")
+                        @if (task.CompletionStatus)
                         {
                             <span>(Completed)</span>
-                        }</p>
+                        }
+                        else
+                        {
+                            <button class="btn-complete" @onclick="() => MarkTaskAsCompleted(task.Id)">Mark as Completed</button>
+                        }
+                    </p>
                 </div>
             }
-            <button class="btn-add-task" @onclick="ShowTaskForm">Add Task</button>
+            <button class="btn-add-task" @onclick="ToggleTaskForm">Add Task</button>
         </div>
         @if (ShowAddTaskForm)
         {
@@ -67,7 +74,7 @@
                             <option value="@taskType.Id">@taskType.Name</option>
                         }
                     </select>
-                    <input type="date" @bind="NewTask.DueDate" />
+                    <input type="date" @bind="NewTask.DueDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <input type="checkbox" @bind="NewTask.CompletionStatus" /> Completed
                 </div>
                 @if (!TaskTypeIsValid)
@@ -78,7 +85,6 @@
             </div>
         }
 
-
         <div class="tags-section">
             <h2>Tags</h2>
             @foreach (var tag in PlantTags)
@@ -87,7 +93,7 @@
                     <p>@tag.Tag.Name</p>
                 </div>
             }
-            <button class="btn-add" @onclick="ShowTagForm">Add Tag</button>
+            <button class="btn-add" @onclick="ToggleTagForm">Add Tag</button>
         </div>
 
         @if (ShowAddTagForm)
@@ -97,7 +103,7 @@
                 <div class="input-fields">
                     <select @bind="NewTag.TagId" class="@((TagIsValid ? "" : "input-invalid"))">
                         <option value="">Select Tag</option>
-                        @foreach (var tag in Tags)
+                        @foreach (var tag in AvailableTags)
                         {
                             <option value="@tag.Id">@tag.Name</option>
                         }
@@ -129,6 +135,7 @@
     bool TagIsValid = true;
     List<TaskType> TaskTypes = new();
     List<Tag> Tags = new();
+    List<Tag> AvailableTags = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,6 +156,9 @@
 
         NewTask = new PlantTask { PlantId = Id };
         NewTag = new PlantTag { PlantId = Id };
+
+        // Filter available tags to exclude those already added
+        AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
     }
 
     private void GoBack()
@@ -156,14 +166,14 @@
         Navigation.NavigateTo("/plants");
     }
 
-    private void ShowTaskForm()
+    private void ToggleTaskForm()
     {
-        ShowAddTaskForm = true;
+        ShowAddTaskForm = !ShowAddTaskForm;
     }
 
-    private void ShowTagForm()
+    private void ToggleTagForm()
     {
-        ShowAddTagForm = true;
+        ShowAddTagForm = !ShowAddTagForm;
     }
 
     private async Task AddTask()
@@ -181,6 +191,7 @@
 
             await PlantTaskService.PostAsync("PlantTasks", NewTask);
             PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id); // Refresh tasks
+            PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
             NewTask = new PlantTask { PlantId = Id }; // Reset the NewTask object
             ShowAddTaskForm = false; // Hide form after addition
         }
@@ -201,8 +212,25 @@
 
             await PlantTagService.PostAsync("PlantTags", NewTag);
             PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id); // Refresh tags
+            PlantTags = PlantTags.Where(x => x.PlantId == Id).ToList();
+
+            // Update available tags after adding a new tag
+            AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
+
             NewTag = new PlantTag { PlantId = Id }; // Reset the NewTag object
             ShowAddTagForm = false; // Hide form after addition
+        }
+    }
+
+    private async Task MarkTaskAsCompleted(int taskId)
+    {
+        var task = PlantTasks.FirstOrDefault(t => t.Id == taskId);
+        if (task != null)
+        {
+            task.CompletionStatus = true;
+            await PlantTaskService.PutAsync($"PlantTasks/{taskId}", task);
+            PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id); // Refresh tasks
+            PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
         }
     }
 
@@ -221,3 +249,104 @@
         }
     }
 }
+
+<style>
+    .page {
+    }
+
+    .page-title {
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+    }
+
+    .item-info {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+        .item-info h2 {
+            margin-top: 0;
+        }
+
+    .btn-water {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+
+    .tasks, .tags-section {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-item, .tag-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+        .task-item:last-child, .tag-item:last-child {
+            border-bottom: none;
+        }
+
+    .btn-add-task, .btn-add {
+        display: block;
+        width: 100%;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    .btn-complete {
+        background-color: #f39c12;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+
+    .add-task, .add-tag-form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .input-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .input-invalid {
+        border: 1px solid red;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+    }
+</style>
