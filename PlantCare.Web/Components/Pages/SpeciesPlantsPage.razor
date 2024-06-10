@@ -1,0 +1,62 @@
+﻿@page "/species/plants/{id:int}"
+
+@using PlantCare.Web.Models
+@using PlantCare.Web.Services
+
+@inject ApiConnectionService<Species> ApiService
+@inject ApiConnectionService<Plant> PlantsService
+@inject NavigationManager Navigation
+
+<div class="page">
+    <button class="btn-back" @onclick="GoBack">
+        <span class="arrow-icon">&larr;</span>
+    </button>
+    <h1 class="my-4">Plants of @Species?.Name</h1>
+
+    @if (PlantList == null)
+    {
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (PlantList.Count == 0)
+    {
+        <p>No plants found for this species.</p>
+    }
+    else
+    {
+        <div class="row gy-4">
+            @foreach (var plant in PlantList)
+            {
+                <div class="col-sm-12 col-md-6 col-lg-3">
+                    <div class="card border-success shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">@plant.Name</h5>
+                            <p>Last Watering Date: @plant.LastWateringDate?.ToString("yyyy-MM-dd")</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    Species Species;
+    List<Plant> PlantList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Species = await ApiService.GetByIdAsync("Species", Id);
+        PlantList = await PlantsService.GetAllAsync("Plants");
+        PlantList = PlantList.Where(p => p.SpeciesId == Id && p.IsActive).ToList();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/species");
+    }
+}

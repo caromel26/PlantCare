@@ -1,10 +1,19 @@
 using PlantCare.Web.Components;
+using PlantCare.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton(sp => new HttpClient
+{
+    BaseAddress = new Uri("http://localhost:5174/api/")
+});
+
+builder.Services.AddScoped(typeof(ApiConnectionService<>));
+builder.Services.AddScoped(typeof(BusinessLogicService));
 
 var app = builder.Build();
 
