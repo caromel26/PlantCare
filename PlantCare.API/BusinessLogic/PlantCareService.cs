@@ -1,4 +1,5 @@
-﻿using PlantCare.API.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using PlantCare.API.Models;
 using PlantCare.API.Models.Context;
 
 namespace PlantCare.API.BusinessLogic
@@ -23,29 +24,27 @@ namespace PlantCare.API.BusinessLogic
             }
         }
 
-        // Business logic method to create a reminder
-        public void CreateReminder(int plantId, DateTime reminderDate)
+        public async Task GenerateAutomaticReminders()
         {
-            var reminder = new Reminder
-            {
-                PlantId = plantId,
-                ReminderDate = reminderDate,
-                IsCompleted = false
-            };
+            var tasks = await _context.PlantTasks
+                .Include(t => t.Plant)  // Include Plant to access Plant.Name
+                .Include(t => t.TaskType)  // Include TaskType to access TaskType.Name
+                .Where(t => t.DueDate <= DateTime.Today && !t.CompletionStatus)
+                .ToListAsync();
 
-            _context.Reminders.Add(reminder);
-            _context.SaveChanges();
-        }
-
-        // Business logic method to complete a reminder
-        public void CompleteReminder(int reminderId)
-        {
-            var reminder = _context.Reminders.Find(reminderId);
-            if (reminder != null)
+            foreach (var task in tasks)
             {
-                reminder.IsCompleted = true;
-                _context.SaveChanges();
+                var reminder = new Reminder
+                {
+                    PlantId = task.PlantId,
+                    Name = "PlantReminder",  // Automatically set Name
+                    Description = $"{task.Plant.Name} -> {task.TaskType.Name}"  // Automatically set Description
+                };
+                _context.Reminders.Add(reminder);
             }
+
+            await _context.SaveChangesAsync();
         }
+
     }
 }

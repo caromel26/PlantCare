@@ -105,8 +105,6 @@ namespace PlantCare.API.Models.Context
             modelBuilder.Entity<Reminder>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.ReminderDate).IsRequired();
-                entity.Property(e => e.IsCompleted).IsRequired();
 
                 entity.HasOne(d => d.Plant)
                     .WithMany(p => p.Reminders)

@@ -7,8 +7,6 @@ namespace PlantCare.API.Models
     public partial class Reminder : DictionaryTable
     {
         public int PlantId { get; set; }
-        public DateTime ReminderDate { get; set; }
-        public bool IsCompleted { get; set; }
 
         [ForeignKey("PlantId")]
         [InverseProperty("Reminders")]
