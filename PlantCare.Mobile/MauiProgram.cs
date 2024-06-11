@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PlantCare.Mobile.Services;
+using MudBlazor.Services;
 
 namespace PlantCare.Mobile
 {
@@ -24,6 +25,7 @@ namespace PlantCare.Mobile
 
             builder.Services.AddScoped(typeof(ApiConnectionService<>));
             builder.Services.AddScoped(typeof(BusinessLogicService));
+            builder.Services.AddMudServices();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
