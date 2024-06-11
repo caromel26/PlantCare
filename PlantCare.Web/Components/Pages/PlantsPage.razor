@@ -48,7 +48,7 @@
                         {
                             <MudCardContent Style="background-color: #e8f5e9;">
                                 <MudTextField Label="Name" @bind-Value="plant.Name" />
-                                <MudTextField Label="Description" @bind-Value="plant.Description" Text="textarea" />
+                                <MudTextField Label="Description" @bind-Value="plant.Description" />
                                 <MudSelect T="int" Label="Species" @bind-Value="plant.SpeciesId" Required="true">
                                     @foreach (var species in ActiveSpeciesList)
                                     {
