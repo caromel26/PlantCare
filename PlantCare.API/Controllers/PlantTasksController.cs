@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PlantTaskDTO>>> GetPlantTasks()
         {
-            var plantTasks = await _context.PlantTasks
+            var plantTasks = await _context.PlantTasks.Where(x => x.IsActive == true)
                 .Include(x => x.TaskType)
                 .Include(x => x.Plant)
                 .ThenInclude(x => x.Species)

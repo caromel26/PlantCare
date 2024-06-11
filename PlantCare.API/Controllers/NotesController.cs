@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes()
         {
-            var notes = await _context.Notes.Include(n => n.Plant).ToListAsync();
+            var notes = await _context.Notes.Where(x => x.IsActive == true).Include(n => n.Plant).ToListAsync();
 
             var noteDtos = notes.Select(note => new NoteDTO
             {
