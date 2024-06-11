@@ -15,8 +15,8 @@
 
     @if (ShowAddSpeciesForm)
     {
-        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
-            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant Species</MudText>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#e8f5e9; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true" Style="color: #2e7d32;">Add New Plant Species</MudText>
             <MudTextField Label="Name" @bind-Value="NewSpecies.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
             <MudTextField Label="Description" @bind-Value="NewSpecies.Description" />
             <MudTextField Label="Watering Frequency" @bind-Value="NewSpecies.WateringFrequency" />
@@ -37,10 +37,10 @@
             @foreach (var species in SpeciesList)
             {
                 <MudItem xs="12" md="6">
-                    <MudCard Style="margin-bottom:20px;">
+                    <MudCard Class="card border-success shadow" Style="margin-bottom:20px; border-color: #2e7d32; box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);">
                         @if (SelectedSpeciesId == species.Id)
                         {
-                            <MudCardContent>
+                            <MudCardContent Style="background-color: #e8f5e9;">
                                 <MudTextField Label="Name" @bind-Value="species.Name" />
                                 <MudTextField Label="Description" @bind-Value="species.Description" Text="textarea" />
                                 <MudTextField Label="Watering Frequency" @bind-Value="species.WateringFrequency" />
@@ -53,11 +53,11 @@
                         }
                         else
                         {
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@species.Name</MudText>
-                                <MudText>@species.Description</MudText>
-                                <MudText><strong>Watering Frequency:</strong> @species.WateringFrequency</MudText>
-                                <MudText><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</MudText>
+                            <MudCardContent Style="background-color: #e8f5e9;">
+                                <MudText Typo="Typo.h6" Style="color: #2e7d32;">@species.Name</MudText>
+                                <MudText Style="color: #388e3c;">@species.Description</MudText>
+                                <MudText Style="color: #388e3c;"><strong>Watering Frequency:</strong> @species.WateringFrequency</MudText>
+                                <MudText Style="color: #388e3c;"><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</MudText>
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToPlants(species.Id)">See plants</MudButton>
@@ -103,9 +103,9 @@
         if (NameIsValid)
         {
             await ApiService.PostAsync("Species", NewSpecies);
-            await LoadSpecies(); // Reload species after addition
-            NewSpecies = new Species(); // Reset the NewSpecies object
-            ShowAddSpeciesForm = false; // Hide the form after addition
+            await LoadSpecies();
+            NewSpecies = new Species();
+            ShowAddSpeciesForm = false;
         }
     }
 
@@ -117,18 +117,18 @@
     private async Task SaveSpecies(Species species)
     {
         await ApiService.PutAsync($"Species/{species.Id}", species);
-        SelectedSpeciesId = 0; // Reset to exit edit mode
+        SelectedSpeciesId = 0;
     }
 
     private void CancelEdit()
     {
-        SelectedSpeciesId = 0; // Reset to exit edit mode
+        SelectedSpeciesId = 0;
     }
 
     private async Task DeleteSpecies(int speciesId)
     {
         await ApiService.DeleteAsync($"Species/{speciesId}");
-        await LoadSpecies(); // Reload species after deletion
+        await LoadSpecies();
     }
 
     private void GoToPlants(int speciesId)

@@ -142,3 +142,10 @@ p {
         background-color: #1e7e34;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
+body {
+    background-image: url('mob.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+}
