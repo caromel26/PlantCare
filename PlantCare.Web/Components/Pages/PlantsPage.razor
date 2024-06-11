@@ -16,8 +16,8 @@
 
     @if (ShowAddPlantForm)
     {
-        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
-            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant</MudText>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#e8f5e9; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true" Style="color: #2e7d32;">Add New Plant</MudText>
             <MudTextField Label="Name" @bind-Value="NewPlant.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
             <MudTextField Label="Description" @bind-Value="NewPlant.Description" />
             <MudSelect T="int" Label="Species" @bind-Value="NewPlantSpeciesId" Required="true" Error="!SpeciesIsValid" ErrorText="Species is required.">
@@ -43,10 +43,10 @@
             @foreach (var plant in PlantList)
             {
                 <MudItem xs="12" md="6">
-                    <MudCard Style="margin-bottom:20px;">
+                    <MudCard Class="card border-success shadow" Style="margin-bottom:20px; border-color: #2e7d32; box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);">
                         @if (SelectedPlantId == plant.Id)
                         {
-                            <MudCardContent>
+                            <MudCardContent Style="background-color: #e8f5e9;">
                                 <MudTextField Label="Name" @bind-Value="plant.Name" />
                                 <MudTextField Label="Description" @bind-Value="plant.Description" Text="textarea" />
                                 <MudSelect T="int" Label="Species" @bind-Value="plant.SpeciesId" Required="true">
@@ -55,7 +55,7 @@
                                         <MudSelectItem Value="@species.Id">@species.Name</MudSelectItem>
                                     }
                                 </MudSelect>
-                                <MudDatePicker Label="Last Watering Date" @bind-Date="plant.LastWateringDate" MaxDate="DateTime.Now"/>
+                                <MudDatePicker Label="Last Watering Date" @bind-Date="plant.LastWateringDate" MaxDate="DateTime.Now" />
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => SavePlant(plant)">Save</MudButton>
@@ -64,10 +64,10 @@
                         }
                         else
                         {
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@plant.Name</MudText>
-                                <MudText>@plant.Description</MudText>
-                                <MudText><strong>Last Watering Date:</strong> @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
+                            <MudCardContent Style="background-color: #e8f5e9;">
+                                <MudText Typo="Typo.h6" Style="color: #2e7d32;">@plant.Name</MudText>
+                                <MudText Style="color: #388e3c;">@plant.Description</MudText>
+                                <MudText Style="color: #388e3c;"><strong>Last Watering Date:</strong> @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToDetails(plant.Id)">Details</MudButton>

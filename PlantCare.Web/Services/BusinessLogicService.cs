@@ -1,10 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using PlantCare.Web.Models;
-using System;
-using System.Net.Http;
+﻿using PlantCare.Web.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace PlantCare.Web.Services
 {

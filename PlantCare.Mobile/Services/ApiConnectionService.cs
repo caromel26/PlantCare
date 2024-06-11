@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http.Json;
 using System.Text.Json;
-using Newtonsoft.Json;
 using System.Text;
 using System.Text.Json.Serialization;
 

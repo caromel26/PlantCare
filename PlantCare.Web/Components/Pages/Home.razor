@@ -7,31 +7,33 @@
 @inject BusinessLogicService BusinessService
 @inject ApiConnectionService<Reminder> ReminderService
 
-<MudContainer MaxWidth="MaxWidth.Medium">
-    <MudText Typo="Typo.h4" Class="mb-4">Welcome to Your Plant Management</MudText>
-    <MudText Typo="Typo.body1">
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px; background-color: #f9f9f9; border-radius:8px;">
+    <MudText Typo="Typo.h4" Class="mb-4" Color="Color.Primary">Welcome to Your Plant Management</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
         Manage your plants, care tasks, species, and tags all in one place.
     </MudText>
 
     <MudDivider Class="my-4" />
 
-    <MudText Typo="Typo.h6" Class="mb-2">Your reminders:</MudText>
+    <MudText Typo="Typo.h6" Class="mb-2" Color="Color.Secondary">Your Reminders:</MudText>
 
     @if (Reminders == null || Reminders.Count == 0)
     {
-        <MudText>No reminders available.</MudText>
+        <MudAlert Severity="Severity.Info" Elevation="0" Class="my-2">No reminders available.</MudAlert>
     }
     else
     {
-        <MudList>
+        <MudGrid Container="true" Spacing="3">
             @foreach (var reminder in Reminders)
             {
-                <MudListItem>
-                    <MudText Typo="Typo.subtitle1" Bold="true">@reminder.Name</MudText>
-                    <MudText Typo="Typo.body2">@reminder.Description</MudText>
-                </MudListItem>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Class="pa-4" Elevation="2" Style="background-color: #e8f5e9;">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Bold="true">@reminder.Name</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">@reminder.Description</MudText>
+                    </MudPaper>
+                </MudItem>
             }
-        </MudList>
+        </MudGrid>
     }
 </MudContainer>
 

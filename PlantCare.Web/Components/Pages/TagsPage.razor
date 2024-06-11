@@ -9,14 +9,14 @@
 @inject ApiConnectionService<Tag> ApiService
 @inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px;">
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px; ">
     <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">Plant Tags</MudText>
     <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ToggleAddTagForm">Add New Tag</MudButton>
 
     @if (ShowAddTagForm)
     {
-        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
-            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant Tag</MudText>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#e8f5e9; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true" Style="color: #2e7d32;">Add New Plant Tag</MudText>
             <MudTextField Label="Name" @bind-Value="NewTag.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
             <MudTextField Label="Description" @bind-Value="NewTag.Description" />
             <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AddTag">Add</MudButton>
@@ -35,10 +35,10 @@
             @foreach (var tag in TagList)
             {
                 <MudItem xs="12" md="6">
-                    <MudCard Style="margin-bottom:20px;">
+                    <MudCard Class="card border-success shadow" Style="margin-bottom:20px; border-color: #2e7d32; box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);">
                         @if (SelectedTagId == tag.Id)
                         {
-                            <MudCardContent>
+                            <MudCardContent Style="background-color: #e8f5e9;">
                                 <MudTextField Label="Name" @bind-Value="tag.Name" />
                                 <MudTextField Label="Description" @bind-Value="tag.Description" />
                             </MudCardContent>
@@ -49,9 +49,9 @@
                         }
                         else
                         {
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@tag.Name</MudText>
-                                <MudText>@tag.Description</MudText>
+                            <MudCardContent Style="background-color: #e8f5e9;">
+                                <MudText Typo="Typo.h6" Style="color: #2e7d32;">@tag.Name</MudText>
+                                <MudText Style="color: #388e3c;">@tag.Description</MudText>
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToPlants(tag.Id)">See plants</MudButton>

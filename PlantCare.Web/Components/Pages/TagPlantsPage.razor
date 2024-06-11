@@ -10,28 +10,30 @@
 @inject ApiConnectionService<PlantTag> PlantTagsService
 @inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="page-container">
-    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack">Back</MudButton>
-    <MudText Typo="Typo.h4" Class="my-4">Plants of @Tag?.Name</MudText>
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px; border-radius:8px;">
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoBack" StartIcon="@Icons.Material.Filled.ArrowBack">
+        Back
+    </MudButton>
+    <MudText Typo="Typo.h4" Class="my-4" Color="Color.Primary">Plants with Task: @Tag?.Name</MudText>
 
     @if (PlantList == null)
     {
-        <MudProgressCircular Indeterminate="true" Class="loading-spinner" />
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
     }
     else if (PlantList.Count == 0)
     {
-        <MudText>No plants found with this tag.</MudText>
+        <MudAlert Severity="Severity.Info" Elevation="0" Class="my-2">No plants found with this tag.</MudAlert>
     }
     else
     {
-        <MudGrid Spacing="3">
+        <MudGrid Container="true" Spacing="3">
             @foreach (var plant in PlantList)
             {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Class="card border-success shadow">
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudCard Class="pa-2" Elevation="2" Style="background-color: #e8f5e9;">
                         <MudCardContent>
-                            <MudText Typo="Typo.h6">@plant.Name</MudText>
-                            <MudText>Last Watering Date: @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
+                            <MudText Typo="Typo.h6" Color="Color.Primary">@plant.Name</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-1">Last Watering Date: @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>

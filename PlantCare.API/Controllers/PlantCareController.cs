@@ -27,19 +27,5 @@ namespace PlantCare.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-        [HttpPost("generate-reminders")]
-        public async Task<IActionResult> GenerateAutomaticReminders()
-        {
-            try
-            {
-                await _plantCareService.GenerateAutomaticReminders();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
     }
 }

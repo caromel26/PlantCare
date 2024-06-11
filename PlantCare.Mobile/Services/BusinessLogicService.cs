@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using PlantCare.Mobile.Models;
-using System;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace PlantCare.Mobile.Services
 {

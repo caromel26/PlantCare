@@ -1,7 +1,6 @@
 ﻿using PlantCare.API.Models.Abstractions;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace PlantCare.API.Models
 {

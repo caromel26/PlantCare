@@ -15,8 +15,8 @@
 
     @if (ShowAddSpeciesForm)
     {
-        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
-            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant Species</MudText>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#e8f5e9; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true" Style="color: #2e7d32;">Add New Plant Species</MudText>
             <MudTextField Label="Name" @bind-Value="NewSpecies.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
             <MudTextField Label="Description" @bind-Value="NewSpecies.Description" />
             <MudTextField Label="Watering Frequency" @bind-Value="NewSpecies.WateringFrequency" />
@@ -37,12 +37,12 @@
             @foreach (var species in SpeciesList)
             {
                 <MudItem xs="12" md="6">
-                    <MudCard Style="margin-bottom:20px;">
+                    <MudCard Class="card border-success shadow" Style="margin-bottom:20px; border-color: #2e7d32; box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);">
                         @if (SelectedSpeciesId == species.Id)
                         {
-                            <MudCardContent>
+                            <MudCardContent Style="background-color: #e8f5e9;">
                                 <MudTextField Label="Name" @bind-Value="species.Name" />
-                                <MudTextField Label="Description" @bind-Value="species.Description"/>
+                                <MudTextField Label="Description" @bind-Value="species.Description" Text="textarea" />
                                 <MudTextField Label="Watering Frequency" @bind-Value="species.WateringFrequency" />
                                 <MudTextField Label="Sunlight Requirements" @bind-Value="species.SunlightRequirements" />
                             </MudCardContent>
@@ -53,11 +53,11 @@
                         }
                         else
                         {
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@species.Name</MudText>
-                                <MudText>@species.Description</MudText>
-                                <MudText><strong>Watering Frequency:</strong> @species.WateringFrequency</MudText>
-                                <MudText><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</MudText>
+                            <MudCardContent Style="background-color: #e8f5e9;">
+                                <MudText Typo="Typo.h6" Style="color: #2e7d32;">@species.Name</MudText>
+                                <MudText Style="color: #388e3c;">@species.Description</MudText>
+                                <MudText Style="color: #388e3c;"><strong>Watering Frequency:</strong> @species.WateringFrequency</MudText>
+                                <MudText Style="color: #388e3c;"><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</MudText>
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToPlants(species.Id)">See plants</MudButton>
