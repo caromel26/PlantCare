@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReminderDTO>>> GetReminders()
         {
-            var reminders = await _context.Reminders.Include(x => x.Plant).ThenInclude(x => x.Species).ToListAsync();
+            var reminders = await _context.Reminders.Where(x => x.IsActive == true).Include(x => x.Plant).ThenInclude(x => x.Species).ToListAsync();
 
             var remindersDTOs = reminders.Select(reminder => new ReminderDTO
             {

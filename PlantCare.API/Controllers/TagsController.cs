@@ -44,7 +44,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TagDTO>>> GetTags()
         {
-            var tags = await _context.Tags.ToListAsync();
+            var tags = await _context.Tags.Where(x => x.IsActive == true).ToListAsync();
             var tagDtos = tags.Select(tag => new TagDTO
             {
                 Id = tag.Id,

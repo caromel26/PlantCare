@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskTypeDTO>>> GetTaskTypes()
         {
-            var taskTypes = await _context.TaskTypes.ToListAsync();
+            var taskTypes = await _context.TaskTypes.Where(x => x.IsActive == true).ToListAsync();
             var taskTypesDtos = taskTypes.Select(taskType => new TaskTypeDTO
             {
                 Id = taskType.Id,
@@ -88,20 +88,20 @@ namespace PlantCare.API.Controllers
         // POST: api/TaskTypes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult> CreateTag([FromBody] TaskTypeDTO taskTypeDto)
+        public async Task<ActionResult> CreateTaskType([FromBody] TaskTypeDTO taskTypeDto)
         {
             if (taskTypeDto == null)
             {
                 return BadRequest("Task entity is null.");
             }
 
-            var entity = new Tag
+            var entity = new TaskType
             {
                 Name = taskTypeDto.Name,
                 Description = taskTypeDto.Description,
             };
 
-            _context.Tags.Add(entity);
+            _context.TaskTypes.Add(entity);
             await _context.SaveChangesAsync();
 
             return Ok("Task created successfully.");
