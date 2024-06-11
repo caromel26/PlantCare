@@ -23,9 +23,6 @@ namespace PlantCare.API.Models
         public virtual ICollection<Note> Notes { get; set; }
 
         [InverseProperty("Plant")]
-        public virtual ICollection<Image> Images { get; set; }
-
-        [InverseProperty("Plant")]
         public virtual ICollection<PlantTask> PlantTasks { get; set; }
 
         [InverseProperty("Plant")]

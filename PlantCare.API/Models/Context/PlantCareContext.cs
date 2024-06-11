@@ -8,7 +8,6 @@ namespace PlantCare.API.Models.Context
 
         public PlantCareContext(DbContextOptions<PlantCareContext> options) : base(options) { }
 
-        public virtual DbSet<Image> Images { get; set; } = null!;
         public virtual DbSet<Note> Notes { get; set; } = null!;
         public virtual DbSet<Plant> Plants { get; set; } = null!;
         public virtual DbSet<PlantTag> PlantTags { get; set; } = null!;
@@ -64,17 +63,6 @@ namespace PlantCare.API.Models.Context
 
                 entity.HasOne(d => d.Plant)
                     .WithMany(p => p.Notes)
-                    .HasForeignKey(d => d.PlantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
-            });
-
-            modelBuilder.Entity<Image>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.ImageUrl).HasMaxLength(1000);
-
-                entity.HasOne(d => d.Plant)
-                    .WithMany(p => p.Images)
                     .HasForeignKey(d => d.PlantId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
