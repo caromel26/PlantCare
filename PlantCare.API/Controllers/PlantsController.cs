@@ -107,7 +107,6 @@ namespace PlantCare.API.Controllers
             plant.LastWateringDate = plantDTO.LastWateringDate;
             plant.SpeciesId = plantDTO.SpeciesId;
             plant.Species = _context.Species.Find(plantDTO.SpeciesId);
-            // Update other properties as needed
 
             try
             {

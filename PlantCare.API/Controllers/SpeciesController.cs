@@ -82,7 +82,6 @@ namespace PlantCare.API.Controllers
             species.Description = speciesDTO.Description;
             species.WateringFrequency = speciesDTO.WateringFrequency;
             species.SunlightRequirements = speciesDTO.SunlightRequirements;
-            // Update other properties as needed
 
             _context.Entry(species).State = EntityState.Modified;
 
