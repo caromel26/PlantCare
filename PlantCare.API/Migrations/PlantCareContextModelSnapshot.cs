@@ -22,40 +22,6 @@ namespace PlantCare.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PlantCare.API.Models.Image", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("PlantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlantId");
-
-                    b.ToTable("Images");
-                });
-
             modelBuilder.Entity("PlantCare.API.Models.Note", b =>
                 {
                     b.Property<int>("Id")
@@ -361,16 +327,6 @@ namespace PlantCare.API.Migrations
                     b.ToTable("TaskTypes");
                 });
 
-            modelBuilder.Entity("PlantCare.API.Models.Image", b =>
-                {
-                    b.HasOne("PlantCare.API.Models.Plant", "Plant")
-                        .WithMany("Images")
-                        .HasForeignKey("PlantId")
-                        .IsRequired();
-
-                    b.Navigation("Plant");
-                });
-
             modelBuilder.Entity("PlantCare.API.Models.Note", b =>
                 {
                     b.HasOne("PlantCare.API.Models.Plant", "Plant")
@@ -438,8 +394,6 @@ namespace PlantCare.API.Migrations
 
             modelBuilder.Entity("PlantCare.API.Models.Plant", b =>
                 {
-                    b.Navigation("Images");
-
                     b.Navigation("Notes");
 
                     b.Navigation("PlantTags");
