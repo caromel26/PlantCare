@@ -3,88 +3,99 @@
 @using PlantCare.Mobile.Models
 @using PlantCare.Mobile.Services
 @using System.ComponentModel.DataAnnotations
+@using MudBlazor
+@using static MudBlazor.Icons
 
 @inject ApiConnectionService<Plant> ApiService
 @inject ApiConnectionService<Species> SpeciesService
 @inject NavigationManager Navigation
 
-<div class="page">
-    <h1 class="page-title">Plants</h1>
-    <button class="btn-add" @onclick="ToggleAddPlantForm">Add New Plant</button>
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px;">
+    <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">Plants</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ToggleAddPlantForm">Add New Plant</MudButton>
 
     @if (ShowAddPlantForm)
     {
-        <div class="add-item">
-            <h2>Add New Plant</h2>
-            <div class="input-fields">
-                <input type="text" placeholder="Name" @bind="NewPlant.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
-                <textarea type="text" placeholder="Description" @bind="NewPlant.Description"></textarea>
-                <input type="text" placeholder="Species Id" @bind="NewPlantSpeciesId" />
-                <input type="date" placeholder="Last Watering Date" @bind="NewPlant.LastWateringDate" />
-            </div>
-            @if (!NameIsValid)
-            {
-                <div class="error-message">Name is required.</div>
-            }
-            <button class="btn-add" @onclick="AddPlant">Add</button>
-        </div>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant</MudText>
+            <MudTextField Label="Name" @bind-Value="NewPlant.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
+            <MudTextField Label="Description" @bind-Value="NewPlant.Description" />
+            <MudSelect T="int" Label="Species" @bind-Value="NewPlantSpeciesId" Required="true" Error="!SpeciesIsValid" ErrorText="Species is required.">
+                @foreach (var species in ActiveSpeciesList)
+                {
+                    <MudSelectItem Value="@species.Id">@species.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudDatePicker Label="Last Watering Date" @bind-Date="NewPlant.LastWateringDate" />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AddPlant">Add</MudButton>
+        </MudContainer>
     }
 
-    <div class="item-list">
+    <MudGrid Style="margin-top:20px;">
         @if (PlantList == null)
         {
-            <div class="loading-spinner">
-                <div class="spinner-border" role="status"></div>
-            </div>
+            <MudItem xs="12">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudItem>
         }
         else
         {
             @foreach (var plant in PlantList)
             {
-                <div class="item-card">
-                    @if (SelectedPlantId == plant.Id)
-                    {
-                        <div class="item-info">
-                            <input type="text" @bind="plant.Name" placeholder="Name" />
-                            <textarea @bind="plant.Description" placeholder="Description"></textarea>
-                            <input type="text" @bind="plant.SpeciesId" placeholder="Species Id" />
-                            <input type="date" @bind="plant.LastWateringDate" placeholder="Last Watering Date" />
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-save bg-success" @onclick="() => SavePlant(plant)">Save</button>
-                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="item-info">
-                            <h2>@plant.Name</h2>
-                            <p>@plant.Description</p>
-                            <p><strong>Last Watering Date:</strong> @plant.LastWateringDate?.ToString("yyyy-MM-dd")</p>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-details bg-primary" @onclick="() => GoToDetails(plant.Id)">Details</button>
-                            <button class="btn-edit bg-info" @onclick="() => EditPlant(plant)">Edit</button>
-                            <button class="btn-delete bg-danger" @onclick="() => DeletePlant(plant.Id)">Delete</button>
-                        </div>
-                    }
-                </div>
+                <MudItem xs="12" md="6">
+                    <MudCard Style="margin-bottom:20px;">
+                        @if (SelectedPlantId == plant.Id)
+                        {
+                            <MudCardContent>
+                                <MudTextField Label="Name" @bind-Value="plant.Name" />
+                                <MudTextField Label="Description" @bind-Value="plant.Description"/>
+                                <MudSelect T="int" Label="Species" @bind-Value="plant.SpeciesId" Required="true">
+                                    @foreach (var species in ActiveSpeciesList)
+                                    {
+                                        <MudSelectItem Value="@species.Id">@species.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudDatePicker Label="Last Watering Date" @bind-Date="plant.LastWateringDate" MaxDate="DateTime.Now" />
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => SavePlant(plant)">Save</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelEdit">Cancel</MudButton>
+                            </MudCardActions>
+                        }
+                        else
+                        {
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6">@plant.Name</MudText>
+                                <MudText>@plant.Description</MudText>
+                                <MudText><strong>Last Watering Date:</strong> @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToDetails(plant.Id)">Details</MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Info" OnClick="() => EditPlant(plant)">Edit</MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="() => DeletePlant(plant.Id)">Delete</MudButton>
+                            </MudCardActions>
+                        }
+                    </MudCard>
+                </MudItem>
             }
         }
-    </div>
-</div>
+    </MudGrid>
+</MudContainer>
 
 @code {
     List<Plant> PlantList;
+    List<Species> ActiveSpeciesList;
     int SelectedPlantId;
     bool ShowAddPlantForm = false;
     bool NameIsValid = true;
+    bool SpeciesIsValid = true;
     Plant NewPlant = new Plant();
     int NewPlantSpeciesId;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadPlants();
+        await LoadActiveSpecies();
         SelectedPlantId = 0;
     }
 
@@ -92,6 +103,11 @@
     {
         var allPlants = await ApiService.GetAllAsync("Plants");
         PlantList = allPlants.Where(p => p.IsActive).ToList();
+    }
+
+    private async Task LoadActiveSpecies()
+    {
+        ActiveSpeciesList = await SpeciesService.GetAllAsync("Species");
     }
 
     private void ToggleAddPlantForm()
@@ -102,8 +118,9 @@
     private async Task AddPlant()
     {
         NameIsValid = !string.IsNullOrWhiteSpace(NewPlant.Name);
+        SpeciesIsValid = NewPlantSpeciesId > 0;
 
-        if (NameIsValid)
+        if (NameIsValid && SpeciesIsValid)
         {
             var species = await SpeciesService.GetByIdAsync("Species", NewPlantSpeciesId);
             if (species != null)
@@ -111,27 +128,20 @@
                 NewPlant.Species = species;
                 NewPlant.SpeciesId = NewPlantSpeciesId;
                 await ApiService.PostAsync("Plants", NewPlant);
-                await LoadPlants(); // Reload plants after addition
-                NewPlant = new Plant(); // Reset the NewPlant object
-                ShowAddPlantForm = false; // Hide the form after addition
-            }
-            else
-            {
-                // Handle case where species is not found
+                await LoadPlants();
+                NewPlant = new Plant(); 
+                ShowAddPlantForm = false; 
             }
         }
     }
 
-    private async void EditPlant(Plant plant)
+    private void EditPlant(Plant plant)
     {
         SelectedPlantId = plant.Id;
-        await LoadPlants();
     }
 
     private async Task SavePlant(Plant plant)
     {
-        plant.Species = await SpeciesService.GetByIdAsync("Species", plant.SpeciesId);
-
         await ApiService.PutAsync($"Plants/{plant.Id}", plant);
         SelectedPlantId = 0; // Reset to exit edit mode
     }

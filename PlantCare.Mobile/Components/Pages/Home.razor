@@ -2,83 +2,38 @@
 @using PlantCare.Mobile.Models
 @using PlantCare.Mobile.Services
 @using System.ComponentModel.DataAnnotations
+@using MudBlazor
 
 @inject BusinessLogicService BusinessService
 @inject ApiConnectionService<Reminder> ReminderService
 
-<style>
-    h1 {
-        font-size: 24px;
-        margin-bottom: 20px;
-        color: #333;
-    }
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h4" Class="mb-4">Welcome to Your Plant Management</MudText>
+    <MudText Typo="Typo.body1">
+        Manage your plants, care tasks, species, and tags all in one place.
+    </MudText>
 
-    h5 {
-        font-size: 18px;
-        margin-bottom: 10px;
-        color: #555;
-    }
+    <MudDivider Class="my-4" />
 
-    p {
-        font-size: 16px;
-        color: #777;
-    }
-
-    ul {
-        list-style-type: none;
-        padding-left: 0;
-        margin-top: 0;
-    }
-
-    li {
-        margin-bottom: 10px;
-        padding: 10px;
-        background-color: #fff;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    strong {
-        font-weight: bold;
-        color: #333;
-    }
-
-    span {
-        color: #666;
-    }
-</style>
-
-<div class="container">
-    <h1>Welcome to Your Plant Management</h1>
-    <div class="content">
-        <p>
-            Manage your plants, care tasks, species, and tags all in one place.
-        </p>
-    </div>
-</div>
-<br />
-<div class="container">
-    <h5>Your reminders:</h5>
+    <MudText Typo="Typo.h6" Class="mb-2">Your reminders:</MudText>
 
     @if (Reminders == null || Reminders.Count == 0)
     {
-        <p>No reminders available.</p>
+        <MudText>No reminders available.</MudText>
     }
     else
     {
-        <ul>
+        <MudList>
             @foreach (var reminder in Reminders)
             {
-                <li>
-                    <div>
-                        <strong>@reminder.Name</strong><br />
-                        <span>@reminder.Description</span><br />
-                    </div>
-                </li>
+                <MudListItem>
+                    <MudText Typo="Typo.subtitle1" Bold="true">@reminder.Name</MudText>
+                    <MudText Typo="Typo.body2">@reminder.Description</MudText>
+                </MudListItem>
             }
-        </ul>
+        </MudList>
     }
-</div>
+</MudContainer>
 
 @code {
     List<Reminder> Reminders = new();

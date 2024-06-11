@@ -2,45 +2,43 @@
 
 @using PlantCare.Mobile.Models
 @using PlantCare.Mobile.Services
+@using MudBlazor
+@using static MudBlazor.Icons
 
 @inject ApiConnectionService<Tag> TagService
 @inject ApiConnectionService<Plant> PlantsService
 @inject ApiConnectionService<PlantTag> PlantTagsService
 @inject NavigationManager Navigation
 
-<div class="page">
-    <button class="btn-back" @onclick="GoBack">
-        <span class="arrow-icon">&larr;</span>
-    </button>
-    <h1 class="my-4">Plants with @Tag?.Name</h1>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="page-container">
+    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack">Back</MudButton>
+    <MudText Typo="Typo.h4" Class="my-4">Plants of @Tag?.Name</MudText>
 
     @if (PlantList == null)
     {
-        <div class="loading-spinner">
-            <div class="spinner-border" role="status"></div>
-        </div>
+        <MudProgressCircular Indeterminate="true" Class="loading-spinner" />
     }
     else if (PlantList.Count == 0)
     {
-        <p>No plants found with this tag.</p>
+        <MudText>No plants found with this tag.</MudText>
     }
     else
     {
-        <div class="row gy-4">
+        <MudGrid Spacing="3">
             @foreach (var plant in PlantList)
             {
-                <div class="col-sm-12 col-md-6 col-lg-3">
-                    <div class="card border-success shadow">
-                        <div class="card-body">
-                            <h5 class="card-title">@plant.Name</h5>
-                            <p>Last Watering Date: @plant.LastWateringDate?.ToString("yyyy-MM-dd")</p>
-                        </div>
-                    </div>
-                </div>
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="card border-success shadow">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@plant.Name</MudText>
+                            <MudText>Last Watering Date: @plant.LastWateringDate?.ToString("yyyy-MM-dd")</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
             }
-        </div>
+        </MudGrid>
     }
-</div>
+</MudContainer>
 
 @code {
     [Parameter]
