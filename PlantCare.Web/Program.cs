@@ -1,5 +1,6 @@
 using PlantCare.Web.Components;
 using PlantCare.Web.Services;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ builder.Services.AddSingleton(sp => new HttpClient
 
 builder.Services.AddScoped(typeof(ApiConnectionService<>));
 builder.Services.AddScoped(typeof(BusinessLogicService));
-
+builder.Services.AddMudServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
