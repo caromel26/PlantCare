@@ -84,7 +84,7 @@
             <MudText Typo="Typo.h6">Tags</MudText>
             @foreach (var tag in PlantTags)
             {
-                <MudChip Style="margin: 5px;">@tag.Tag.Name</MudChip>
+                <MudChip Style="margin: 5px;">@tag.Tag.Name <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteTag(tag.TagId)" /></MudChip>
             }
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ToggleTagForm" Style="margin-top:10px;">Add Tag</MudButton>
         </MudPaper>
@@ -101,6 +101,31 @@
                         }
                     </MudSelect>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddTag" Style="margin-top:10px;">Add Tag</MudButton>
+                </MudForm>
+            </MudPaper>
+        }
+
+        <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+            <MudText Typo="Typo.h6">Notes</MudText>
+            @foreach (var note in PlantNotes)
+            {
+                <MudPaper Elevation="1" Style="padding:10px; margin-bottom:10px;">
+                    <MudText Typo="Typo.body1">@note.Name</MudText>
+                    <MudText Typo="Typo.body2">@note.Description</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteNote(note.Id)" />
+                </MudPaper>
+            }
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ToggleNoteForm" Style="margin-top:10px;">Add Note</MudButton>
+        </MudPaper>
+
+        @if (ShowAddNoteForm)
+        {
+            <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+                <MudText Typo="Typo.h6">Add Note</MudText>
+                <MudForm>
+                    <MudTextField @bind-Value="NewNote.Name" Label="Note Title" Required="true" />
+                    <MudTextField @bind-Value="NewNote.Description" Label="Note Description" Required="true" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddNote" Style="margin-top:10px;">Add Note</MudButton>
                 </MudForm>
             </MudPaper>
         }
@@ -124,6 +149,7 @@
     Species Species;
     PlantTask NewTask;
     PlantTag NewTag;
+    Note NewNote;
 
     List<PlantTag> PlantTags = new();
     List<PlantTask> PlantTasks = new();
@@ -158,12 +184,15 @@
 
         PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id);
         PlantTasks = await PlantTaskService.GetByPlantIdAsync("PlantTasks", Id);
+        PlantNotes = await NoteService.GetByPlantIdAsync("Notes", Id);
 
         PlantTags = PlantTags.Where(x => x.PlantId == Id).ToList();
         PlantTasks = PlantTasks.Where(x => x.PlantId == Id).ToList();
+        PlantNotes = PlantNotes.Where(x => x.PlantId == Id).ToList();
 
         NewTask = new PlantTask { PlantId = Id };
         NewTag = new PlantTag { PlantId = Id };
+        NewNote = new Note { PlantId = Id };
 
         AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
 
@@ -185,6 +214,11 @@
     private void ToggleTagForm()
     {
         ShowAddTagForm = !ShowAddTagForm;
+    }
+
+    private void ToggleNoteForm()
+    {
+        ShowAddNoteForm = !ShowAddNoteForm;
     }
 
     private async Task AddTask()
@@ -229,6 +263,24 @@
 
             NewTag = new PlantTag { PlantId = Id };
             ShowAddTagForm = false;
+        }
+    }
+
+    private async Task AddNote()
+    {
+        NoteIsValid = !string.IsNullOrWhiteSpace(NewNote.Name) && !string.IsNullOrWhiteSpace(NewNote.Description);
+        if (NoteIsValid)
+        {
+            var plant = await ApiService.GetByIdAsync("Plants", Id);
+
+            NewNote.PlantId = plant.Id;
+            NewNote.Plant = plant;
+
+            await NoteService.PostAsync("Notes", NewNote);
+            PlantNotes = await NoteService.GetByPlantIdAsync("Notes", Id);
+            PlantNotes = PlantNotes.Where(x => x.PlantId == Id).ToList();
+            NewNote = new Note { PlantId = Id };
+            ShowAddNoteForm = false;
         }
     }
 
@@ -285,6 +337,26 @@
             await ReminderService.PutAsync($"Reminders/{PlantReminder.Id}", PlantReminder);
             StateHasChanged();
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task DeleteNote(int noteId)
+    {
+        await NoteService.DeleteAsync($"Notes/{noteId}");
+        PlantNotes = await NoteService.GetByPlantIdAsync("Notes", Id);
+        PlantNotes = PlantNotes.Where(x => x.PlantId == Id).ToList();
+    }
+
+    private async Task DeleteTag(int tagId)
+    {
+        var plantTag = PlantTags.FirstOrDefault(pt => pt.TagId == tagId);
+        if (plantTag != null)
+        {
+            await PlantTagService.DeleteAsync($"PlantTags/{plantTag.Id}");
+            PlantTags = await PlantTagService.GetByPlantIdAsync("PlantTags", Id);
+            PlantTags = PlantTags.Where(x => x.PlantId == Id).ToList();
+
+            AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
         }
     }
 }

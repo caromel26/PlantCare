@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes()
         {
-            var notes = await _context.Notes.Where(x => x.IsActive == true).Include(n => n.Plant).ToListAsync();
+            var notes = await _context.Notes.Where(x => x.IsActive == true).Include(n => n.Plant).ThenInclude(x => x.Species).ToListAsync();
 
             var noteDtos = notes.Select(note => new NoteDTO
             {
@@ -59,7 +59,7 @@ namespace PlantCare.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<NoteDTO>> GetNote(int id)
         {
-            var note = await _context.Notes.Include(n => n.Plant).FirstOrDefaultAsync(x => x.Id == id);
+            var note = await _context.Notes.Include(n => n.Plant).ThenInclude(x => x.Species).FirstOrDefaultAsync(x => x.Id == id);
 
             if (note == null)
             {
@@ -123,7 +123,11 @@ namespace PlantCare.API.Controllers
         [HttpPost]
         public async Task<ActionResult<NoteDTO>> PostNote(NoteDTO noteDTO)
         {
-            if(!ModelState.IsValid)
+            var plant = await _context.Plants.FindAsync(noteDTO.PlantId);
+            var species = await _context.Species.FindAsync(noteDTO.Plant.SpeciesId);
+            plant.Species = species;
+
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
@@ -131,7 +135,9 @@ namespace PlantCare.API.Controllers
             var note = new Note
             {
                 Name = noteDTO.Name,
-                Description = noteDTO.Description
+                Description = noteDTO.Description,
+                PlantId = noteDTO.PlantId,
+                Plant = plant
             };
 
             _context.Notes.Add(note);
