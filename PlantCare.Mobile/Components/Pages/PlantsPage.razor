@@ -48,7 +48,7 @@
                         {
                             <MudCardContent>
                                 <MudTextField Label="Name" @bind-Value="plant.Name" />
-                                <MudTextField Label="Description" @bind-Value="plant.Description" Text="textarea" />
+                                <MudTextField Label="Description" @bind-Value="plant.Description"/>
                                 <MudSelect T="int" Label="Species" @bind-Value="plant.SpeciesId" Required="true">
                                     @foreach (var species in ActiveSpeciesList)
                                     {
@@ -128,27 +128,20 @@
                 NewPlant.Species = species;
                 NewPlant.SpeciesId = NewPlantSpeciesId;
                 await ApiService.PostAsync("Plants", NewPlant);
-                await LoadPlants(); // Reload plants after addition
-                NewPlant = new Plant(); // Reset the NewPlant object
-                ShowAddPlantForm = false; // Hide the form after addition
-            }
-            else
-            {
-                // Handle case where species is not found
+                await LoadPlants();
+                NewPlant = new Plant(); 
+                ShowAddPlantForm = false; 
             }
         }
     }
 
-    private async void EditPlant(Plant plant)
+    private void EditPlant(Plant plant)
     {
         SelectedPlantId = plant.Id;
-        await LoadPlants();
     }
 
     private async Task SavePlant(Plant plant)
     {
-        plant.Species = await SpeciesService.GetByIdAsync("Species", plant.SpeciesId);
-
         await ApiService.PutAsync($"Plants/{plant.Id}", plant);
         SelectedPlantId = 0; // Reset to exit edit mode
     }
