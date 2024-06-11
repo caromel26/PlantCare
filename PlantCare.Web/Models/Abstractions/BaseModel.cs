@@ -10,6 +10,6 @@ namespace PlantCare.Web.Models.Abstractions
     {
         public int Id { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
     }
 }

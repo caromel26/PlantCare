@@ -3,6 +3,8 @@
 @using PlantCare.Web.Models
 @using PlantCare.Web.Services
 @using System.ComponentModel.DataAnnotations
+@using MudBlazor
+@using static MudBlazor.Icons
 
 @inject ApiConnectionService<Plant> ApiService
 @inject ApiConnectionService<Species> SpeciesService
@@ -16,116 +18,103 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
 
-<div class="page">
-    <button class="btn-back" @onclick="GoBack">
-        <span class="arrow-icon">&larr;</span>
-    </button>
-    <h1 class="page-title">Plant Details</h1>
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px;">
+    <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" OnClick="GoBack">Back</MudButton>
+    <MudText Typo="Typo.h4" GutterBottom="true">Plant Details</MudText>
 
     @if (Plant == null)
     {
-        <div class="loading-spinner">
-            <div class="spinner-border" role="status"></div>
-        </div>
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
     }
     else
     {
-        <div class="item-info">
-            <h2>@Plant.Name</h2>
-            <p>@Plant.Description</p>
-            <p><strong>Species:</strong> @Species?.Name</p>
-            <p>
+        <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+            <MudText Typo="Typo.h5">@Plant.Name</MudText>
+            <MudText>@Plant.Description</MudText>
+            <MudText><strong>Species:</strong> @Species?.Name</MudText>
+            <MudText>
                 <strong>Last Watering Date:</strong> @Plant.LastWateringDate?.ToString("yyyy-MM-dd")
-                <button class="btn-water" @onclick="WaterPlant">Water Plant</button>
-            </p>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="WaterPlant" Style="margin-left:10px;">Water Plant</MudButton>
+            </MudText>
             @if (Species != null)
             {
-                <p><strong>Watering Frequency:</strong> @Species.WateringFrequency</p>
-                <p><strong>Sunlight Requirements:</strong> @Species.SunlightRequirements</p>
+                <MudText><strong>Watering Frequency:</strong> @Species.WateringFrequency</MudText>
+                <MudText><strong>Sunlight Requirements:</strong> @Species.SunlightRequirements</MudText>
             }
-        </div>
-       
-        <div class="tasks">
-            <h2>Tasks</h2>
+        </MudPaper>
+
+        <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+            <MudText Typo="Typo.h6">Tasks</MudText>
             @foreach (var task in PlantTasks)
             {
-                <div class="task-item">
-                    <p>
-                        <strong>@task.TaskType.Name:</strong> Due @task.DueDate?.ToString("yyyy-MM-dd")
-                        @if (task.CompletionStatus)
-                        {
-                            <span>(Completed)</span>
-                        }
-                        else
-                        {
-                            <button class="btn-complete" @onclick="() => MarkTaskAsCompleted(task.Id)">Mark as Completed</button>
-                        }
-                    </p>
-                </div>
+                <MudExpansionPanel Text="@task.TaskType.Name">
+                    <MudText>Due: @task.DueDate?.ToString("yyyy-MM-dd")</MudText>
+                    @if (task.CompletionStatus)
+                    {
+                        <MudText Color="Color.Success">(Completed)</MudText>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Success" OnClick="() => MarkTaskAsCompleted(task.Id)">Mark as Completed</MudButton>
+                    }
+                </MudExpansionPanel>
             }
-            <button class="btn-add-task" @onclick="ToggleTaskForm">Add Task</button>
-        </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ToggleTaskForm" Style="margin-top:10px;">Add Task</MudButton>
+        </MudPaper>
+
         @if (ShowAddTaskForm)
         {
-            <div class="add-task">
-                <h2>Add Task</h2>
-                <div class="input-fields">
-                    <select @bind="NewTask.TaskTypeId" class="@((TaskTypeIsValid ? "" : "input-invalid"))">
-                        <option value="">Select Task Type</option>
+            <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+                <MudText Typo="Typo.h6">Add Task</MudText>
+                <MudForm>
+                    <MudSelect @bind-Value="NewTask.TaskTypeId" Label="Task Type" Required="true">
                         @foreach (var taskType in TaskTypes)
                         {
-                            <option value="@taskType.Id">@taskType.Name</option>
+                            <MudSelectItem Value="@taskType.Id">@taskType.Name</MudSelectItem>
                         }
-                    </select>
-                    <input type="date" @bind="NewTask.DueDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                    <input type="checkbox" @bind="NewTask.CompletionStatus" /> Completed
-                </div>
-                @if (!TaskTypeIsValid)
-                {
-                    <div class="error-message">Task Type is required.</div>
-                }
-                <button class="btn-add" @onclick="AddTask">Add Task</button>
-            </div>
+                    </MudSelect>
+                    <MudDatePicker @bind-Date="NewTask.DueDate" Label="Due Date" MinDate="@DateTime.Now" />
+                    <MudCheckBox @bind-Checked="NewTask.CompletionStatus" Label="Completed" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddTask" Style="margin-top:10px;">Add Task</MudButton>
+                </MudForm>
+            </MudPaper>
         }
 
-        <div class="tags-section">
-            <h2>Tags</h2>
+        <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+            <MudText Typo="Typo.h6">Tags</MudText>
             @foreach (var tag in PlantTags)
             {
-                <div class="tag-item">
-                    <p>@tag.Tag.Name</p>
-                </div>
+                <MudChip Style="margin: 5px;">@tag.Tag.Name</MudChip>
             }
-            <button class="btn-add" @onclick="ToggleTagForm">Add Tag</button>
-        </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ToggleTagForm" Style="margin-top:10px;">Add Tag</MudButton>
+        </MudPaper>
 
         @if (ShowAddTagForm)
         {
-            <div class="add-tag-form">
-                <h2>Add Tag</h2>
-                <div class="input-fields">
-                    <select @bind="NewTag.TagId" class="@((TagIsValid ? "" : "input-invalid"))">
-                        <option value="">Select Tag</option>
+            <MudPaper Elevation="2" Style="padding:20px; margin-bottom:20px;">
+                <MudText Typo="Typo.h6">Add Tag</MudText>
+                <MudForm>
+                    <MudSelect @bind-Value="NewTag.TagId" Label="Tag" Required="true">
                         @foreach (var tag in AvailableTags)
                         {
-                            <option value="@tag.Id">@tag.Name</option>
+                            <MudSelectItem Value="@tag.Id">@tag.Name</MudSelectItem>
                         }
-                    </select>
-                </div>
-                @if (!TagIsValid)
-                {
-                    <div class="error-message">Tag is required.</div>
-                }
-                <button class="btn-add" @onclick="AddTag">Add Tag</button>
-            </div>
+                    </MudSelect>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddTag" Style="margin-top:10px;">Add Tag</MudButton>
+                </MudForm>
+            </MudPaper>
         }
 
-        @if (!HasReminder)
+        @if (HasReminder)
         {
-            <button class="btn-add-reminder" @onclick="AddReminder">Add Reminder</button>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="UpdateReminder" Style="margin-top:10px;">Update Reminder</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="AddReminder" Style="margin-top:10px;">Add Reminder</MudButton>
         }
     }
-</div>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -150,6 +139,7 @@
     bool TagIsValid = true;
 
     bool HasReminder = false;
+    Reminder PlantReminder;
 
     List<TaskType> TaskTypes = new();
     List<Tag> Tags = new();
@@ -177,7 +167,9 @@
 
         AvailableTags = Tags.Where(t => !PlantTags.Any(pt => pt.TagId == t.Id)).ToList();
 
-        HasReminder = Reminders.Any(reminder => reminder.PlantId == Id);
+        Reminders = await ReminderService.GetByPlantIdAsync("Reminders", Id);
+        PlantReminder = Reminders.FirstOrDefault(reminder => reminder.PlantId == Id);
+        HasReminder = PlantReminder != null;
     }
 
     private void GoBack()
@@ -279,121 +271,20 @@
 
         await ReminderService.PostAsync("Reminders", reminder);
         HasReminder = true;
+        PlantReminder = reminder;
         StateHasChanged();
         await InvokeAsync(StateHasChanged);
     }
+
+    private async Task UpdateReminder()
+    {
+        if (PlantReminder != null)
+        {
+            var uncompletedTasks = PlantTasks.Count(task => !task.CompletionStatus);
+            PlantReminder.Description = $"This plant has {uncompletedTasks} uncompleted tasks";
+            await ReminderService.PutAsync($"Reminders/{PlantReminder.Id}", PlantReminder);
+            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 }
-
-<style>
-    .page {
-    }
-
-    .page-title {
-    }
-
-    .loading-spinner {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 200px;
-    }
-
-    .item-info {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-        .item-info h2 {
-            margin-top: 0;
-        }
-
-    .btn-water {
-        background-color: #2196f3;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-
-    .tasks, .tags-section {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .task-item, .tag-item {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-    }
-
-        .task-item:last-child, .tag-item:last-child {
-            border-bottom: none;
-        }
-
-    .btn-add-task, .btn-add {
-        display: block;
-        width: 100%;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    .btn-complete {
-        background-color: #f39c12;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-
-    .btn-add-reminder {
-        display: block;
-        width: 100%;
-        background-color: #ff9800;
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    .add-task, .add-tag-form {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
-    }
-
-    .input-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .input-invalid {
-        border: 1px solid red;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 0.9em;
-    }
-</style>

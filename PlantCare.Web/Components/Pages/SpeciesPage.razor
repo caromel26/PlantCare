@@ -3,93 +3,89 @@
 @using PlantCare.Web.Models
 @using PlantCare.Web.Services
 @using System.ComponentModel.DataAnnotations
+@using MudBlazor
+@using static MudBlazor.Icons
 
 @inject ApiConnectionService<Species> ApiService
 @inject NavigationManager Navigation
 
-
-<div class="page">
-    <h1 class="page-title">Plant Species</h1>
-    <button class="btn-add" @onclick="ToggleAddSpeciesForm">Add New Species</button>
+<MudContainer MaxWidth="MaxWidth.Medium" Style="margin:auto; padding:20px;">
+    <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">Plant Species</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ToggleAddSpeciesForm">Add New Species</MudButton>
 
     @if (ShowAddSpeciesForm)
     {
-        <div class="add-item">
-            <h2>Add New Plant Species</h2>
-            <div class="input-fields">
-                <input type="text" placeholder="Name" @bind="NewSpecies.Name" class="@((NameIsValid ? "" : "input-invalid"))" />
-                <textarea type="text" placeholder="Description" @bind="NewSpecies.Description"></textarea>
-                <input type="text" placeholder="Watering Frequency" @bind="NewSpecies.WateringFrequency" />
-                <input type="text" placeholder="Sunlight Requirements" @bind="NewSpecies.SunlightRequirements" />
-            </div>
-            @if (!NameIsValid)
-            {
-                <div class="error-message">Name is required.</div>
-            }
-            <button class="btn-add" @onclick="AddSpecies">Add</button>
-        </div>
+        <MudContainer Style="margin-top:20px; padding:20px; background-color:#f8f8f8; border-radius:8px;">
+            <MudText Typo="Typo.h6" GutterBottom="true">Add New Plant Species</MudText>
+            <MudTextField Label="Name" @bind-Value="NewSpecies.Name" Required="true" Error="!NameIsValid" ErrorText="Name is required." />
+            <MudTextField Label="Description" @bind-Value="NewSpecies.Description" />
+            <MudTextField Label="Watering Frequency" @bind-Value="NewSpecies.WateringFrequency" />
+            <MudTextField Label="Sunlight Requirements" @bind-Value="NewSpecies.SunlightRequirements" />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AddSpecies">Add</MudButton>
+        </MudContainer>
     }
 
-    <div class="item-list">
+    <MudGrid Style="margin-top:20px;">
         @if (SpeciesList == null)
         {
-            <div class="loading-spinner">
-                <div class="spinner-border" role="status"></div>
-            </div>
+            <MudItem xs="12">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudItem>
         }
         else
         {
             @foreach (var species in SpeciesList)
             {
-                <div class="item-card">
-                    @if (SelectedSpeciesId == species.Id)
-                    {
-                        <div class="item-info">
-                            <input type="text" @bind="species.Name" placeholder="Name" />
-                            <textarea @bind="species.Description" placeholder="Description"></textarea>
-                            <input type="text" @bind="species.WateringFrequency" placeholder="Watering Frequency" />
-                            <input type="text" @bind="species.SunlightRequirements" placeholder="Sunlight Requirements" />
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-save bg-success" @onclick="() => SaveSpecies(species)">Save</button>
-                            <button class="btn-cancel bg-secondary" @onclick="CancelEdit">Cancel</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="item-info">
-                            <h2>@species.Name</h2>
-                            <p>@species.Description</p>
-                            <p><strong>Watering Frequency:</strong> @species.WateringFrequency</p>
-                            <p><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</p>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-details bg-primary" @onclick="() => GoToPlants(species.Id)">See plants</button>
-                            <button class="btn-edit bg-info" @onclick="() => EditSpecies(species)">Edit</button>
-                            <button class="btn-delete bg-danger" @onclick="() => DeleteSpecies(species.Id)">Delete</button>
-                        </div>
-                    }
-                </div>
+                <MudItem xs="12" md="6">
+                    <MudCard Style="margin-bottom:20px;">
+                        @if (SelectedSpeciesId == species.Id)
+                        {
+                            <MudCardContent>
+                                <MudTextField Label="Name" @bind-Value="species.Name" />
+                                <MudTextField Label="Description" @bind-Value="species.Description" Text="textarea" />
+                                <MudTextField Label="Watering Frequency" @bind-Value="species.WateringFrequency" />
+                                <MudTextField Label="Sunlight Requirements" @bind-Value="species.SunlightRequirements" />
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => SaveSpecies(species)">Save</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelEdit">Cancel</MudButton>
+                            </MudCardActions>
+                        }
+                        else
+                        {
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6">@species.Name</MudText>
+                                <MudText>@species.Description</MudText>
+                                <MudText><strong>Watering Frequency:</strong> @species.WateringFrequency</MudText>
+                                <MudText><strong>Sunlight Requirements:</strong> @species.SunlightRequirements</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToPlants(species.Id)">See plants</MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Info" OnClick="() => EditSpecies(species)">Edit</MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="() => DeleteSpecies(species.Id)">Delete</MudButton>
+                            </MudCardActions>
+                        }
+                    </MudCard>
+                </MudItem>
             }
         }
-    </div>
-
-</div>
+    </MudGrid>
+</MudContainer>
 
 @code {
-    List<Species> SpeciesList = new();
-    int SelectedSpeciesId = 0;
+    List<Species> SpeciesList;
+    int SelectedSpeciesId;
     bool ShowAddSpeciesForm = false;
     bool NameIsValid = true;
-    Species NewSpecies = new ();
+    Species NewSpecies = new Species();
 
-    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         await LoadSpecies();
         SelectedSpeciesId = 0;
     }
 
-    private async System.Threading.Tasks.Task LoadSpecies()
+    private async Task LoadSpecies()
     {
         var allSpecies = await ApiService.GetAllAsync("Species");
         SpeciesList = allSpecies.Where(s => s.IsActive).ToList();
@@ -100,7 +96,7 @@
         ShowAddSpeciesForm = !ShowAddSpeciesForm;
     }
 
-    private async System.Threading.Tasks.Task AddSpecies()
+    private async Task AddSpecies()
     {
         NameIsValid = !string.IsNullOrWhiteSpace(NewSpecies.Name);
 
@@ -118,7 +114,7 @@
         SelectedSpeciesId = species.Id;
     }
 
-    private async System.Threading.Tasks.Task SaveSpecies(Species species)
+    private async Task SaveSpecies(Species species)
     {
         await ApiService.PutAsync($"Species/{species.Id}", species);
         SelectedSpeciesId = 0; // Reset to exit edit mode
@@ -129,7 +125,7 @@
         SelectedSpeciesId = 0; // Reset to exit edit mode
     }
 
-    private async System.Threading.Tasks.Task DeleteSpecies(int speciesId)
+    private async Task DeleteSpecies(int speciesId)
     {
         await ApiService.DeleteAsync($"Species/{speciesId}");
         await LoadSpecies(); // Reload species after deletion
