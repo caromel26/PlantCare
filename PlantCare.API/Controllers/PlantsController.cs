@@ -40,16 +40,14 @@ namespace PlantCare.API.Controllers
                 Description = p.Description,
                 LastWateringDate = p.LastWateringDate,
                 SpeciesId = p.SpeciesId,
-                Species = speciesDictionary.ContainsKey(p.SpeciesId)
-                            ? new SpeciesDTO
-                            {
-                                Id = speciesDictionary[p.SpeciesId].Id,
-                                Name = speciesDictionary[p.SpeciesId].Name,
-                                Description = speciesDictionary[p.SpeciesId].Description,
-                                WateringFrequency = speciesDictionary[p.SpeciesId].WateringFrequency ?? "",
-                                SunlightRequirements = speciesDictionary[p.SpeciesId].SunlightRequirements ?? ""
-                            }
-                            : null 
+                Species = new SpeciesDTO
+                {
+                    Id = p.Species.Id,
+                    Name = p.Species.Name,
+                    Description = p.Species.Description,
+                    WateringFrequency = p.Species.WateringFrequency ?? "",
+                    SunlightRequirements = p.Species.SunlightRequirements ?? "",
+                }
             }).ToList();
 
             return Ok(plantDTOs);
@@ -98,7 +96,7 @@ namespace PlantCare.API.Controllers
                 return BadRequest();
             }
 
-            var plant = await _context.Plants.Where(x => x.Id == id).FirstOrDefaultAsync();
+            var plant = await _context.Plants.Where(x => x.Id == id).Include(x => x.Species).FirstOrDefaultAsync();
             if (plant == null)
             {
                 return NotFound();
@@ -169,12 +167,16 @@ namespace PlantCare.API.Controllers
                 return NotFound();
             }
 
+            var reminders = await _context.Reminders.Where(r => r.PlantId == id).ToListAsync();
+            _context.Reminders.RemoveRange(reminders);
+
             plant.IsActive = false;
             plant.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         private bool PlantExists(int id)
         {

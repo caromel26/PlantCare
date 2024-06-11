@@ -26,7 +26,7 @@ namespace PlantCare.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SpeciesDTO>>> GetSpecies()
         {
-            var species = await _context.Species.ToListAsync();
+            var species = await _context.Species.Where(x => x.IsActive == true).ToListAsync();
 
             var speciesDTOs = species.Select(s => new SpeciesDTO
             {
